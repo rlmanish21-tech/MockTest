@@ -1,4 +1,5 @@
 name: Deploy LU Update to GitHub Pages
+# Deploy on every push to main; workflow_dispatch also allows manual redeployment.
 on:
   push:
     branches: [main]
