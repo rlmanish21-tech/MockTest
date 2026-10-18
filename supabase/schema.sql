@@ -128,3 +128,49 @@ create policy results_admin_write on public.results for all to authenticated usi
 -- Create the owner in Supabase Auth, then promote only that user:
 -- update public.profiles set role='admin' where id='<OWNER_AUTH_USER_UUID>';
 -- Keep answer keys inaccessible to students; production scoring should be server-side.
+
+
+-- Create the student profile in the same transaction as Auth signup.
+-- The browser sends every registration field in auth.users.raw_user_meta_data.
+create or replace function public.handle_new_student_profile()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if coalesce(new.raw_user_meta_data->>'full_name', '') = ''
+     or coalesce(new.raw_user_meta_data->>'mobile', '') !~ '^[0-9]{10}$'
+     or coalesce(new.raw_user_meta_data->>'date_of_birth', '') = ''
+     or coalesce(new.raw_user_meta_data->>'stream', '') not in ('Commerce','Science','Arts')
+     or coalesce(new.raw_user_meta_data->>'course_name', '') = ''
+     or coalesce(new.raw_user_meta_data->>'state', '') = ''
+     or coalesce(new.raw_user_meta_data->>'city', '') = ''
+     or coalesce(new.raw_user_meta_data->>'qualification', '') = '' then
+    raise exception 'Student registration is missing required profile fields';
+  end if;
+
+  insert into public.profiles (
+    id, full_name, mobile, date_of_birth, stream, course_name,
+    state, city, qualification, marketing_consent, role
+  ) values (
+    new.id,
+    new.raw_user_meta_data->>'full_name',
+    new.raw_user_meta_data->>'mobile',
+    (new.raw_user_meta_data->>'date_of_birth')::date,
+    new.raw_user_meta_data->>'stream',
+    new.raw_user_meta_data->>'course_name',
+    new.raw_user_meta_data->>'state',
+    new.raw_user_meta_data->>'city',
+    new.raw_user_meta_data->>'qualification',
+    coalesce((new.raw_user_meta_data->>'marketing_consent')::boolean, false),
+    'student'
+  );
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created_student_profile on auth.users;
+create trigger on_auth_user_created_student_profile
+after insert on auth.users
+for each row execute function public.handle_new_student_profile();
