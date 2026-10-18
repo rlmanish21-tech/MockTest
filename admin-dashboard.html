@@ -1,1 +1,77 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Owner Dashboard | LU Update</title><link rel="stylesheet" href="style.css"><script src="config.js"></script><script type="module" src="app.js"></script></head><body><header class="topbar"><a class="brand" href="index.html">LU <span>UPDATE</span></a><button class="btn secondary" id="admin-logout">Logout</button></header><main class="dashboard"><p class="eyebrow">OWNER WORKSPACE</p><h1>Mock-test management</h1><div id="message" class="status"></div><section class="card section"><h2>Create a course</h2><form id="course-form" class="form-grid"><div class="field"><label for="course-name">Course name</label><input id="course-name" required></div><div class="field"><label for="course-stream">Stream</label><select id="course-stream" required><option>Commerce</option><option>Science</option><option>Arts</option></select></div><button class="btn primary" type="submit">Add course</button></form><div id="courses"></div></section><section class="card section"><h2>Create a test</h2><form id="test-form"><div class="form-grid"><div class="field"><label for="test-title">Test title</label><input id="test-title" required></div><div class="field"><label for="test-course">Course</label><select id="test-course" required></select></div><div class="field"><label for="test-type">Test type</label><select id="test-type"><option value="practice">Practice</option><option value="live">Live</option></select></div><div class="field"><label for="test-duration">Duration (minutes)</label><input id="test-duration" type="number" min="1" max="300" value="90" required></div><div class="field"><label for="test-count">Question count</label><input id="test-count" type="number" min="1" value="100" required></div><div class="field"><label for="test-start">Start time (optional)</label><input id="test-start" type="datetime-local"></div><div class="field"><label for="test-end">End time (optional)</label><input id="test-end" type="datetime-local"></div></div><button class="btn primary" type="submit">Create draft test</button></form></section><section class="section"><h2>Tests</h2><div id="admin-tests">Loading tests…</div></section><section class="section"><h2>Results review</h2><div id="admin-results">Loading results…</div></section></main><footer>LU Update · Owner workspace</footer></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Owner Dashboard | LU Update</title>
+<link rel="stylesheet" href="style.css">
+<script src="config.js"></script><script type="module" src="app.js"></script>
+</head>
+<body class="owner-app">
+<header class="owner-topbar">
+  <a class="owner-brand" href="index.html"><span class="owner-brand-mark">LU</span><span>LU <b>UPDATE</b><small>MOCK TEST ADMINISTRATION</small></span></a>
+  <div class="owner-top-actions"><span class="owner-secure"><i></i> Secure owner workspace</span><button class="btn secondary" id="admin-logout">Logout ↗</button></div>
+</header>
+<div class="owner-layout">
+  <aside class="owner-sidebar">
+    <div class="owner-side-label">WORKSPACE</div>
+    <a class="owner-nav active" href="#overview"><span>⌂</span> Overview</a>
+    <a class="owner-nav" href="#courses-section"><span>▦</span> Courses</a>
+    <a class="owner-nav" href="#tests-section"><span>▤</span> Question papers & tests</a>
+    <a class="owner-nav" href="#schedule-section"><span>◷</span> Scheduling</a>
+    <a class="owner-nav" href="#results-section"><span>✓</span> Results & approvals</a>
+    <a class="owner-nav" href="#students-section"><span>♙</span> Student records</a>
+    <a class="owner-nav" href="#settings-section"><span>⚙</span> Settings</a>
+    <div class="owner-side-bottom"><div class="owner-avatar">LU</div><div><strong>LU Update Owner</strong><small>Administrator access</small></div></div>
+  </aside>
+  <main class="owner-main">
+    <section id="overview" class="owner-welcome">
+      <div><p class="eyebrow">OWNER WORKSPACE</p><h1>Dashboard overview</h1><p>Manage mock tests, courses, schedules and student results from one place.</p></div>
+      <div class="owner-date-chip"><span>●</span> Administration console</div>
+    </section>
+    <div id="message" class="status"></div>
+    <section class="owner-stat-grid">
+      <article class="owner-stat"><div class="owner-stat-icon purple">▦</div><span>Total courses</span><strong id="stat-courses">—</strong><small>Across Commerce, Science & Arts</small></article>
+      <article class="owner-stat"><div class="owner-stat-icon blue">▤</div><span>Total tests</span><strong id="stat-tests">—</strong><small>Practice and live assessments</small></article>
+      <article class="owner-stat"><div class="owner-stat-icon green">♙</div><span>Registered students</span><strong id="stat-students">—</strong><small>Student accounts in the platform</small></article>
+      <article class="owner-stat"><div class="owner-stat-icon amber">✓</div><span>Pending results</span><strong id="stat-pending">—</strong><small>Awaiting owner review</small></article>
+    </section>
+    <section class="owner-quick-actions">
+      <div><div class="owner-section-kicker">QUICK ACTIONS</div><h2>What would you like to do?</h2></div>
+      <div class="owner-action-buttons"><a class="btn primary" href="#tests-section">＋ Create a test</a><a class="btn secondary" href="#courses-section">＋ Add a course</a><a class="btn secondary" href="#students-section">View students →</a></div>
+    </section>
+    <section id="courses-section" class="owner-panel">
+      <div class="owner-panel-head"><div><div class="owner-section-kicker">ACADEMIC SETUP</div><h2>Course management</h2><p>Create and manage exam courses by stream.</p></div><span class="owner-panel-tag">COURSES</span></div>
+      <form id="course-form" class="owner-inline-form"><div class="field"><label for="course-name">Course / exam name</label><input id="course-name" required placeholder="e.g. B.Com Entrance"></div><div class="field"><label for="course-stream">Stream</label><select id="course-stream" required><option>Commerce</option><option>Science</option><option>Arts</option></select></div><button class="btn primary" type="submit">＋ Add course</button></form>
+      <div id="courses" class="owner-record-list"></div>
+    </section>
+    <section id="tests-section" class="owner-panel">
+      <div class="owner-panel-head"><div><div class="owner-section-kicker">ASSESSMENT BUILDER</div><h2>Question papers & tests</h2><p>Set test details, duration and question count before adding the paper.</p></div><span class="owner-panel-tag">TEST BUILDER</span></div>
+      <form id="test-form">
+        <div class="owner-form-grid"><div class="field"><label for="test-title">Test title</label><input id="test-title" required placeholder="e.g. All India Commerce Mock Test 01"></div><div class="field"><label for="test-course">Course</label><select id="test-course" required></select></div><div class="field"><label for="test-type">Test type</label><select id="test-type"><option value="practice">Practice test</option><option value="live">Live test</option></select></div><div class="field"><label for="test-duration">Duration (minutes)</label><input id="test-duration" type="number" min="1" max="300" value="90" required></div><div class="field"><label for="test-count">Number of questions</label><input id="test-count" type="number" min="1" value="100" required></div><div class="field"><label for="test-start">Start time (optional)</label><input id="test-start" type="datetime-local"></div><div class="field"><label for="test-end">End time (optional)</label><input id="test-end" type="datetime-local"></div></div>
+        <div class="owner-form-foot"><p>New tests are saved as drafts. Publishing makes a test visible to eligible students.</p><button class="btn primary" type="submit">Create draft test →</button></div>
+      </form>
+      <div class="owner-subhead"><h3>Existing tests</h3><span class="muted small">Manage draft and published tests</span></div><div id="admin-tests">Loading tests…</div>
+    </section>
+    <section id="schedule-section" class="owner-panel">
+      <div class="owner-panel-head"><div><div class="owner-section-kicker">TEST AVAILABILITY</div><h2>Scheduling</h2><p>Set start and end times when creating a live test.</p></div><span class="owner-panel-tag">SCHEDULE</span></div>
+      <div class="owner-info-banner"><span>◷</span><div><strong>Schedule a live test</strong><p>Use the start time and end time fields in the test builder above. Leave them blank for an unscheduled practice test. Date and time availability enforcement must be verified before public launch.</p><a href="#tests-section">Go to test builder ↑</a></div></div>
+    </section>
+    <section id="results-section" class="owner-panel">
+      <div class="owner-panel-head"><div><div class="owner-section-kicker">REVIEW WORKFLOW</div><h2>Results & approvals</h2><p>Review submitted results and publish approved scores.</p></div><span class="owner-panel-tag">RESULTS</span></div>
+      <div id="admin-results">Loading results…</div>
+    </section>
+    <section id="students-section" class="owner-panel">
+      <div class="owner-panel-head"><div><div class="owner-section-kicker">REGISTRATION DIRECTORY</div><h2>Student records</h2><p>View registered student accounts and export the visible list.</p></div><button id="export-students" class="btn secondary" type="button">Export CSV ↓</button></div>
+      <div class="owner-table-wrap"><table class="owner-table"><thead><tr><th>Name</th><th>Mobile</th><th>Stream</th><th>Course / exam</th><th>Location</th></tr></thead><tbody id="admin-students"><tr><td colspan="5">Loading student records…</td></tr></tbody></table></div>
+    </section>
+    <section id="settings-section" class="owner-panel">
+      <div class="owner-panel-head"><div><div class="owner-section-kicker">PLATFORM CONTROLS</div><h2>Settings</h2><p>Current workspace configuration.</p></div><span class="owner-panel-tag">SETTINGS</span></div>
+      <div class="owner-settings-grid"><div><span>Student registration</span><strong>Supabase Auth</strong><small>Mobile number + date of birth flow</small></div><div><span>Default test duration</span><strong>90 minutes</strong><small>Adjustable per test</small></div><div><span>Default question count</span><strong>100 questions</strong><small>Adjustable per test</small></div><div><span>Result visibility</span><strong>Owner approval</strong><small>Results are private until published</small></div></div>
+    </section>
+    <footer class="owner-footer">LU Update · Owner administration workspace <span>Keep student data private and secure.</span></footer>
+  </main>
+</div>
+<script>
+document.addEventListener('click',function(e){const link=e.target.closest('.owner-nav');if(!link)return;document.querySelectorAll('.owner-nav').forEach(n=>n.classList.remove('active'));link.classList.add('active')});
+</script>
+</body></html>
