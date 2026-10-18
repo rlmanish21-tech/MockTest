@@ -71,7 +71,7 @@ async function studentDash(){
 }
 async function logout(id,redirect){const b=$(id);if(b)b.addEventListener("click",async()=>{if(sb)await sb.auth.signOut();location.href=redirect})}
 async function adminLogin(){const f=$("admin-login-form");if(!f)return;f.addEventListener("submit",async e=>{e.preventDefault();if(!need())return;const {data,error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error){message("Owner login failed: "+error.message,true);return}const {data:isAdmin,error:roleError}=await sb.rpc("is_admin");if(roleError){await sb.auth.signOut();message("Could not verify owner access: "+roleError.message,true);return}if(isAdmin!==true){await sb.auth.signOut();message("Signed in, but this account is not authorised for owner access. Check the admin role for this exact Auth user.",true);return}location.href="admin-dashboard.html"})}
-async function adminDash(){if(!$("admin-tests"))return;if(!need())return;const {data:{user},error:userError}=await sb.auth.getUser();if(userError||!user){location.href="admin.html";return}const {data:isAdmin,error:roleError}=await sb.rpc("is_admin");if(roleError||isAdmin!==true){message("Owner access verification failed. Please sign in again.",true);await sb.auth.signOut();location.href="admin.html";return}await loadCourses();await loadTests();await loadQuestions();await loadResults();await loadOwnerOverview();await loadStudents();$("export-students").addEventListener("click",exportStudentsCsv);$("course-form").addEventListener("submit",async e=>{e.preventDefault();const {error}=await sb.from("courses").insert({name:$("course-name").value.trim(),stream:$("course-stream").value,is_active:true});if(error)message(error.message,true);else{message("Course added.");$("course-form").reset();await loadCourses()}});$("question-test").addEventListener("change",loadQuestions);$("question-form").addEventListener("submit",saveQuestion);$("test-form").addEventListener("submit",async e=>{e.preventDefault();const payload={title:$("test-title").value.trim(),course_id:Number($("test-course").value),test_type:$("test-type").value,duration_minutes:Number($("test-duration").value),question_count:Number($("test-count").value),starts_at:$("test-start").value?new Date($("test-start").value).toISOString():null,ends_at:$("test-end").value?new Date($("test-end").value).toISOString():null,created_by:user.id,status:"draft"};const {error}=await sb.from("tests").insert(payload);if(error)message(error.message,true);else{message("Draft test created. Questions and publishing workflow are next.");$("test-form").reset();await loadTests()}});$("admin-logout").addEventListener("click",async()=>{await sb.auth.signOut();location.href="admin.html"})}
+async function adminDash(){if(!$("admin-tests"))return;if(!need())return;const {data:{user},error:userError}=await sb.auth.getUser();if(userError||!user){location.href="admin.html";return}const {data:isAdmin,error:roleError}=await sb.rpc("is_admin");if(roleError||isAdmin!==true){message("Owner access verification failed. Please sign in again.",true);await sb.auth.signOut();location.href="admin.html";return}await loadCourses();await loadTests();await loadQuestions();await loadResults();await loadOwnerOverview();await loadStudents();$("export-students").addEventListener("click",exportStudentsCsv);$("course-form").addEventListener("submit",async e=>{e.preventDefault();const {error}=await sb.from("courses").insert({name:$("course-name").value.trim(),stream:$("course-stream").value,is_active:true});if(error)message(error.message,true);else{message("Course added.");$("course-form").reset();await loadCourses()}});$("question-test").addEventListener("change",loadQuestions);$("question-form").addEventListener("submit",saveQuestion);$("excel-question-form").addEventListener("submit",importExcelQuestions);$("download-question-template").addEventListener("click",downloadQuestionTemplate);$("test-form").addEventListener("submit",async e=>{e.preventDefault();const payload={title:$("test-title").value.trim(),course_id:Number($("test-course").value),test_type:$("test-type").value,duration_minutes:Number($("test-duration").value),question_count:Number($("test-count").value),starts_at:$("test-start").value?new Date($("test-start").value).toISOString():null,ends_at:$("test-end").value?new Date($("test-end").value).toISOString():null,created_by:user.id,status:"draft"};const {error}=await sb.from("tests").insert(payload);if(error)message(error.message,true);else{message("Draft test created. Questions and publishing workflow are next.");$("test-form").reset();await loadTests()}});$("admin-logout").addEventListener("click",async()=>{await sb.auth.signOut();location.href="admin.html"})}
 let ownerStudentRows=[];
 async function loadOwnerOverview(){
  const specs=[
@@ -157,6 +157,72 @@ async function saveQuestion(e){
  message("Question "+order+" saved.");
  $("question-form").reset();$("question-marks").value="1";$("question-negative").value="0";
  await loadQuestions();
+}
+function downloadQuestionTemplate(){
+ if(!window.XLSX){message("Excel helper has not loaded yet. Refresh the page and try again.",true);return}
+ const rows=[["Question Number","Question","Option A","Option B","Option C","Option D","Correct Option"],[1,"What is the capital of India?","Mumbai","New Delhi","Kolkata","Chennai","B"],[2,"Which one is a prime number?","9","15","17","21","C"]];
+ const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(rows);ws["!cols"]=[{wch:18},{wch:48},{wch:24},{wch:24},{wch:24},{wch:24},{wch:18}];XLSX.utils.book_append_sheet(wb,ws,"Questions");XLSX.writeFile(wb,"LU-Update-Question-Template.xlsx");
+}
+async function importExcelQuestions(e){
+ e.preventDefault();
+ if(!window.XLSX){message("Excel reader is not available. Refresh the page and try again.",true);return}
+ const testId=$("question-test").value,file=$("question-excel").files?.[0],help=$("excel-import-help");
+ if(!testId){message("Select a draft test in Question Editor before importing.",true);return}
+ if(!file){message("Choose an Excel or CSV file first.",true);return}
+ const {data:test,error:te}=await sb.from("tests").select("id,title,status,question_count").eq("id",testId).single();
+ if(te){message("Could not load selected test: "+te.message,true);return}
+ if(test.status!=="draft"){message("Questions can only be imported into a draft test.",true);return}
+ try{
+  if(help)help.textContent="Reading and validating spreadsheet…";
+  const buffer=await file.arrayBuffer();
+  const wb=XLSX.read(buffer,{type:"array"});
+  const first=wb.SheetNames[0];
+  if(!first)throw new Error("The file contains no worksheet.");
+  const matrix=XLSX.utils.sheet_to_json(wb.Sheets[first],{header:1,defval:"",raw:false,blankrows:false});
+  if(!matrix.length)throw new Error("The worksheet is empty.");
+  const cell=s=>String(s??"").trim();
+  const firstRow=matrix[0].map(x=>cell(x).toLowerCase());
+  const hasHeader=firstRow.some(x=>x.includes("question"))||firstRow.some(x=>x==="option a")||firstRow.some(x=>x==="correct option");
+  const dataRows=(hasHeader?matrix.slice(1):matrix).filter(row=>row.some(v=>cell(v)!==""));
+  if(!dataRows.length)throw new Error("No question rows were found. Use columns A–G as specified.");
+  if(dataRows.length>500)throw new Error("Import is limited to 500 questions per upload.");
+  const {data:existing,error:qe}=await sb.from("questions").select("id,question_order").eq("test_id",testId);
+  if(qe)throw new Error("Could not check existing questions: "+qe.message);
+  if((existing||[]).length+dataRows.length>test.question_count)throw new Error("This test allows "+test.question_count+" questions. It already has "+(existing||[]).length+"; this upload contains "+dataRows.length+".");
+  const used=new Set((existing||[]).map(q=>Number(q.question_order)));
+  const seen=new Set();
+  const parsed=[];
+  for(let i=0;i<dataRows.length;i++){
+   const row=dataRows[i]||[];
+   const line=i+(hasHeader?2:1);
+   const rawNo=cell(row[0]),number=Number(rawNo),question=cell(row[1]),opts=[cell(row[2]),cell(row[3]),cell(row[4]),cell(row[5])],correct=cell(row[6]).toUpperCase().replace(/^OPTION\s*/,"");
+   if(!rawNo||!Number.isInteger(number)||number<1)throw new Error("Row "+line+": column A must contain a positive integer question number.");
+   if(used.has(number)||seen.has(number))throw new Error("Row "+line+": question number "+number+" is duplicated in this test or file.");
+   if(!question)throw new Error("Row "+line+": question text in column B is blank.");
+   if(opts.some(x=>!x))throw new Error("Row "+line+": all four options in columns C–F are required.");
+   if(!["A","B","C","D"].includes(correct))throw new Error("Row "+line+": column G must be A, B, C or D.");
+   seen.add(number);
+   parsed.push({test_id:Number(testId),question_text:question,option_a:opts[0],option_b:opts[1],option_c:opts[2],option_d:opts[3],marks:1,negative_marks:0,question_order:number,_correct:correct});
+  }
+  const insertRows=parsed.map(({_correct,...q})=>q);
+  const {data:saved,error:saveError}=await sb.from("questions").insert(insertRows).select("id,question_order");
+  if(saveError)throw new Error("Questions were not saved: "+saveError.message);
+  const correctByOrder=new Map(parsed.map(q=>[q.question_order,q._correct]));
+  const keys=(saved||[]).map(q=>({question_id:q.id,correct_option:correctByOrder.get(Number(q.question_order))}));
+  const {error:keyError}=await sb.from("answer_keys").insert(keys);
+  if(keyError){
+   const ids=(saved||[]).map(q=>q.id);
+   if(ids.length)await sb.from("questions").delete().in("id",ids);
+   throw new Error("Answer keys could not be saved; the imported questions were rolled back. "+keyError.message);
+  }
+  message("Imported "+saved.length+" questions with answer keys.");
+  if(help)help.textContent="Successfully imported "+saved.length+" questions from "+file.name+".";
+  $("excel-question-form").reset();
+  await loadQuestions();
+ }catch(err){
+  if(help)help.textContent=err.message||String(err);
+  message("Excel import failed: "+(err.message||String(err)),true);
+ }
 }
 async function loadTests(){
  const {data,error}=await sb.from("tests").select("id,title,status,test_type,duration_minutes,question_count").order("created_at",{ascending:false});
