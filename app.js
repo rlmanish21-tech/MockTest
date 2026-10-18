@@ -71,7 +71,7 @@ async function studentDash(){
 }
 async function logout(id,redirect){const b=$(id);if(b)b.addEventListener("click",async()=>{if(sb)await sb.auth.signOut();location.href=redirect})}
 async function adminLogin(){const f=$("admin-login-form");if(!f)return;f.addEventListener("submit",async e=>{e.preventDefault();if(!need())return;const {data,error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error){message("Owner login failed: "+error.message,true);return}const {data:isAdmin,error:roleError}=await sb.rpc("is_admin");if(roleError){await sb.auth.signOut();message("Could not verify owner access: "+roleError.message,true);return}if(isAdmin!==true){await sb.auth.signOut();message("Signed in, but this account is not authorised for owner access. Check the admin role for this exact Auth user.",true);return}location.href="admin-dashboard.html"})}
-async function adminDash(){if(!$("admin-tests"))return;if(!need())return;const {data:{user},error:userError}=await sb.auth.getUser();if(userError||!user){location.href="admin.html";return}const {data:isAdmin,error:roleError}=await sb.rpc("is_admin");if(roleError||isAdmin!==true){message("Owner access verification failed. Please sign in again.",true);await sb.auth.signOut();location.href="admin.html";return}await loadCourses();await loadTests();await loadResults();await loadOwnerOverview();await loadStudents();$("export-students").addEventListener("click",exportStudentsCsv);$("course-form").addEventListener("submit",async e=>{e.preventDefault();const {error}=await sb.from("courses").insert({name:$("course-name").value.trim(),stream:$("course-stream").value,is_active:true});if(error)message(error.message,true);else{message("Course added.");$("course-form").reset();await loadCourses()}});$("test-form").addEventListener("submit",async e=>{e.preventDefault();const payload={title:$("test-title").value.trim(),course_id:Number($("test-course").value),test_type:$("test-type").value,duration_minutes:Number($("test-duration").value),question_count:Number($("test-count").value),starts_at:$("test-start").value?new Date($("test-start").value).toISOString():null,ends_at:$("test-end").value?new Date($("test-end").value).toISOString():null,created_by:user.id,status:"draft"};const {error}=await sb.from("tests").insert(payload);if(error)message(error.message,true);else{message("Draft test created. Questions and publishing workflow are next.");$("test-form").reset();await loadTests()}});$("admin-logout").addEventListener("click",async()=>{await sb.auth.signOut();location.href="admin.html"})}
+async function adminDash(){if(!$("admin-tests"))return;if(!need())return;const {data:{user},error:userError}=await sb.auth.getUser();if(userError||!user){location.href="admin.html";return}const {data:isAdmin,error:roleError}=await sb.rpc("is_admin");if(roleError||isAdmin!==true){message("Owner access verification failed. Please sign in again.",true);await sb.auth.signOut();location.href="admin.html";return}await loadCourses();await loadTests();await loadQuestions();await loadResults();await loadOwnerOverview();await loadStudents();$("export-students").addEventListener("click",exportStudentsCsv);$("course-form").addEventListener("submit",async e=>{e.preventDefault();const {error}=await sb.from("courses").insert({name:$("course-name").value.trim(),stream:$("course-stream").value,is_active:true});if(error)message(error.message,true);else{message("Course added.");$("course-form").reset();await loadCourses()}});$("question-test").addEventListener("change",loadQuestions);$("question-form").addEventListener("submit",saveQuestion);$("test-form").addEventListener("submit",async e=>{e.preventDefault();const payload={title:$("test-title").value.trim(),course_id:Number($("test-course").value),test_type:$("test-type").value,duration_minutes:Number($("test-duration").value),question_count:Number($("test-count").value),starts_at:$("test-start").value?new Date($("test-start").value).toISOString():null,ends_at:$("test-end").value?new Date($("test-end").value).toISOString():null,created_by:user.id,status:"draft"};const {error}=await sb.from("tests").insert(payload);if(error)message(error.message,true);else{message("Draft test created. Questions and publishing workflow are next.");$("test-form").reset();await loadTests()}});$("admin-logout").addEventListener("click",async()=>{await sb.auth.signOut();location.href="admin.html"})}
 let ownerStudentRows=[];
 async function loadOwnerOverview(){
  const specs=[
@@ -118,6 +118,45 @@ async function loadCourses(){
   if(error){message("Course was not deleted. It may be linked to existing tests. Deactivate it instead, or remove linked tests first. Details: "+error.message,true);return}
   message("Course permanently deleted.");await loadCourses();await loadOwnerOverview();
  }));
+}
+async function loadQuestions(){
+ const select=$("question-test"),list=$("admin-questions"),progress=$("question-progress");
+ if(!select||!list)return;
+ const id=select.value;
+ if(!id){list.innerHTML="";if(progress)progress.textContent="Select a test to view its questions.";return}
+ const {data:test,error:te}=await sb.from("tests").select("id,title,question_count,status").eq("id",id).single();
+ if(te){message(te.message,true);return}
+ const {data:qs,error}=await sb.from("questions").select("id,question_text,option_a,option_b,option_c,option_d,marks,negative_marks,question_order").eq("test_id",id).order("question_order");
+ if(error){message(error.message,true);return}
+ const rows=qs||[];
+ const {data:keys,error:ke}=rows.length?await sb.from("answer_keys").select("question_id,correct_option").in("question_id",rows.map(q=>q.id)):{data:[],error:null};
+ if(ke){message(ke.message,true);return}
+ const km=new Map((keys||[]).map(k=>[String(k.question_id),k.correct_option]));
+ if(progress)progress.textContent="Saved "+rows.length+" of "+test.question_count+" required questions; answer keys saved for "+km.size+". Status: "+test.status;
+ list.innerHTML=rows.length?rows.map(q=>'<div class="item"><strong>Q'+q.question_order+'. '+esc(q.question_text)+'</strong><p class="muted small">A. '+esc(q.option_a)+' · B. '+esc(q.option_b)+' · C. '+esc(q.option_c)+' · D. '+esc(q.option_d)+'</p><p class="muted small">Correct: '+esc(km.get(String(q.id))||"MISSING")+' · Marks: '+esc(q.marks)+' · Negative: '+esc(q.negative_marks)+'</p><button class="btn secondary" type="button" data-delete-question="'+q.id+'" '+(test.status==="published"?"disabled":"")+'>Remove question</button></div>').join(""):'<div class="item">No questions added yet.</div>';
+ document.querySelectorAll("[data-delete-question]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("Remove this question and its answer key?"))return;const {error}=await sb.from("questions").delete().eq("id",b.dataset.deleteQuestion);if(error)message(error.message,true);else{message("Question removed.");await loadQuestions()}}));
+ $("question-form").querySelectorAll("input,textarea,select,button").forEach(el=>{if(el.id!=="question-test")el.disabled=test.status==="published"});
+}
+async function saveQuestion(e){
+ e.preventDefault();
+ const testId=$("question-test").value;
+ if(!testId){message("Select a test first.",true);return}
+ const {data:test,error:te}=await sb.from("tests").select("id,status,question_count").eq("id",testId).single();
+ if(te){message(te.message,true);return}
+ if(test.status!=="draft"){message("Only draft tests can be edited.",true);return}
+ const {data:rows,error:qe}=await sb.from("questions").select("id,question_order").eq("test_id",testId).order("question_order");
+ if(qe){message(qe.message,true);return}
+ if((rows||[]).length>=test.question_count){message("This test already has its required question count.",true);return}
+ const order=(rows||[]).reduce((n,q)=>Math.max(n,Number(q.question_order)||0),0)+1;
+ const payload={test_id:Number(testId),question_text:$("question-text").value.trim(),option_a:$("option-a").value.trim(),option_b:$("option-b").value.trim(),option_c:$("option-c").value.trim(),option_d:$("option-d").value.trim(),marks:Number($("question-marks").value),negative_marks:Number($("question-negative").value),question_order:order};
+ if(!payload.question_text||![payload.option_a,payload.option_b,payload.option_c,payload.option_d].every(Boolean)){message("Enter the question and all four options.",true);return}
+ const {data:q,error}=await sb.from("questions").insert(payload).select("id").single();
+ if(error){message("Could not save question: "+error.message,true);return}
+ const {error:ke}=await sb.from("answer_keys").insert({question_id:q.id,correct_option:$("correct-option").value});
+ if(ke){await sb.from("questions").delete().eq("id",q.id);message("Answer key failed to save; question was rolled back. "+ke.message,true);return}
+ message("Question "+order+" saved.");
+ $("question-form").reset();$("question-marks").value="1";$("question-negative").value="0";
+ await loadQuestions();
 }
 async function loadTests(){
  const {data,error}=await sb.from("tests").select("id,title,status,test_type,duration_minutes,question_count").order("created_at",{ascending:false});
