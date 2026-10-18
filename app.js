@@ -12,19 +12,31 @@ async function initRegistrationCourses(){
  const stream=$("stream"),course=$("course"),help=$("course-help");
  if(!stream||!course)return;
  if(!need())return;
+ let courses=[];
+ course.disabled=true;
  course.innerHTML='<option value="">Loading courses…</option>';
- const {data,error}=await sb.from("courses").select("id,name,stream").eq("is_active",true).order("name");
- if(error){course.innerHTML='<option value="">Courses unavailable</option>';course.disabled=true;if(help)help.textContent="Could not load courses: "+error.message;return}
- const courses=data||[];
- function refresh(){
+ async function fetchCourses(){
+  if(help)help.textContent="Loading active courses from LU Update…";
+  const {data,error}=await sb.from("courses").select("id,name,stream").eq("is_active",true).order("name");
+  if(error){
+   course.innerHTML='<option value="">Unable to load courses</option>';
+   course.disabled=true;
+   if(help)help.textContent="Course list could not load ("+error.message+"). Please refresh or contact the administrator.";
+   return false;
+  }
+  courses=data||[];
+  refreshOptions();
+  return true;
+ }
+ function refreshOptions(){
   const selectedStream=stream.value;
   const choices=courses.filter(item=>item.stream===selectedStream);
-  course.innerHTML='<option value="">Select a course</option>'+choices.map(item=>'<option value="'+esc(item.name)+'">'+esc(item.name)+'</option>').join("");
+  course.innerHTML='<option value="">'+(selectedStream?"Select a course":"Select stream first")+'</option>'+choices.map(item=>'<option value="'+esc(item.name)+'">'+esc(item.name)+'</option>').join("");
   course.disabled=!selectedStream||choices.length===0;
-  if(help)help.textContent=!selectedStream?"Choose a stream to see the active courses.":choices.length?choices.length+" active course(s) available.":"No active courses for this stream yet. Please check again later.";
+  if(help)help.textContent=!selectedStream?"Choose a stream to see active courses.":choices.length?choices.length+" active course(s) available.":"No active courses are listed for this stream. Ask the owner to add and activate courses.";
  }
- stream.addEventListener("change",refresh);
- refresh();
+ stream.addEventListener("change",async()=>{await fetchCourses()});
+ await fetchCourses();
 }
 async function register(){const f=$("register-form");if(!f)return;f.addEventListener("submit",async e=>{e.preventDefault();if(!need())return;const mobile=$("mobile").value.trim(),dob=$("dob").value;if(!/^\d{10}$/.test(mobile)||!dob){message("Enter a valid 10-digit mobile number and date of birth.",true);return}const profileData={full_name:$("full_name").value.trim(),mobile,date_of_birth:dob,stream:$("stream").value,course_name:$("course").value.trim(),state:$("state").value.trim(),city:$("city").value.trim(),qualification:$("qualification").value,marketing_consent:$("marketing").checked};const {data,error}=await sb.auth.signUp({email:studentAuthEmail(mobile),password:dob,options:{data:profileData}});if(error){message(error.message,true);return}if(!data.session){message("Registration was created but no active session was returned. Ensure Confirm email is OFF, then log in with your mobile number and date of birth.",true);return}const {data:p,error:pe}=await sb.from("profiles").select("id").eq("id",data.user.id).maybeSingle();if(pe||!p){message("Your account was created, but the database did not create the student profile. Please contact support and share this message: profile trigger missing or failed.",true);return}message("Registration successful. Your profile has been saved. You can now use the student dashboard.");f.reset()})}
 async function login(){const f=$("login-form");if(!f)return;f.addEventListener("submit",async e=>{e.preventDefault();if(!need())return;const m=$("mobile").value.trim(),dob=$("dob").value;if(!/^\d{10}$/.test(m)||!dob){message("Enter your registered mobile number and date of birth.",true);return}const {error}=await sb.auth.signInWithPassword({email:studentAuthEmail(m),password:dob});if(error){message("Login failed. Check your mobile number and date of birth. If this is your first login, register first.",true);return}location.href="dashboard.html"})}
