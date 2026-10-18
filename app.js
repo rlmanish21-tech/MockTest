@@ -97,7 +97,38 @@ function exportStudentsCsv(){
  const blob=new Blob(["\\ufeff",csv],{type:"text/csv;charset=utf-8;"});
  const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="lu-update-student-records.csv";a.click();URL.revokeObjectURL(url);
 }
-async function loadCourses(){const {data,error}=await sb.from("courses").select("id,name,stream,is_active").order("name");if(error){message(error.message,true);return}$("courses").innerHTML=data?.length?data.map(c=>'<div class="item">'+esc(c.name)+' · '+esc(c.stream)+'</div>').join(""):'<div class="item">No courses yet. Add a course above.</div>';const sel=$("test-course");sel.innerHTML=data?.length?data.map(c=>'<option value="'+c.id+'">'+esc(c.name)+' — '+esc(c.stream)+'</option>').join(""):'<option value="">Add a course first</option>'}
-async function loadTests(){const {data,error}=await sb.from("tests").select("id,title,status,test_type,duration_minutes,question_count").order("created_at",{ascending:false});$("admin-tests").innerHTML=error?'<div class="item">'+esc(error.message)+'</div>':data?.length?data.map(t=>'<div class="item row"><div><h3>'+esc(t.title)+'</h3><p class="muted small">'+esc(t.test_type)+' · '+t.duration_minutes+' min · '+t.question_count+' questions · '+esc(t.status)+'</p></div><button class="btn secondary" data-publish="'+t.id+'" '+(t.status==="published"?"disabled":"")+'>Publish</button></div>').join(""):'<div class="item">No tests created yet.</div>';document.querySelectorAll("[data-publish]").forEach(b=>b.addEventListener("click",async()=>{const {error}=await sb.from("tests").update({status:"published"}).eq("id",b.dataset.publish);if(error)message(error.message,true);else{message("Test published. Add questions before students attempt it.");await loadTests()}}))}
+async function loadCourses(){
+ const {data,error}=await sb.from("courses").select("id,name,stream,is_active").order("name");
+ if(error){message(error.message,true);return}
+ const rows=data||[];
+ $("courses").innerHTML=rows.length?rows.map(c=>'<div class="item row"><div><h3>'+esc(c.name)+'</h3><p class="muted small">'+esc(c.stream)+' · '+(c.is_active?'Active':'Inactive')+'</p></div><div class="owner-action-buttons"><button class="btn secondary" type="button" data-toggle-course="'+c.id+'" data-active="'+c.is_active+'">'+(c.is_active?'Deactivate':'Reactivate')+'</button><button class="btn secondary" type="button" data-delete-course="'+c.id+'">Delete</button></div></div>').join(""):'<div class="item">No courses yet. Add a course above.</div>';
+ const active=rows.filter(c=>c.is_active);
+ const sel=$("test-course");
+ sel.innerHTML=active.length?active.map(c=>'<option value="'+c.id+'">'+esc(c.name)+' — '+esc(c.stream)+'</option>').join(""):'<option value="">Add and activate a course first</option>';
+ document.querySelectorAll("[data-toggle-course]").forEach(b=>b.addEventListener("click",async()=>{
+  const activeNow=b.dataset.active==="true";
+  const {error}=await sb.from("courses").update({is_active:!activeNow}).eq("id",b.dataset.toggleCourse);
+  if(error){message("Could not update course: "+error.message,true);return}
+  message(activeNow?"Course deactivated and removed from student registration.":"Course reactivated and available for registration.");
+  await loadCourses();
+ }));
+ document.querySelectorAll("[data-delete-course]").forEach(b=>b.addEventListener("click",async()=>{
+  if(!confirm("Permanently delete this course? This only works if no tests are linked to it. Deactivating is safer if you want to preserve history."))return;
+  const {error}=await sb.from("courses").delete().eq("id",b.dataset.deleteCourse);
+  if(error){message("Course was not deleted. It may be linked to existing tests. Deactivate it instead, or remove linked tests first. Details: "+error.message,true);return}
+  message("Course permanently deleted.");await loadCourses();await loadOwnerOverview();
+ }));
+}
+async function loadTests(){
+ const {data,error}=await sb.from("tests").select("id,title,status,test_type,duration_minutes,question_count").order("created_at",{ascending:false});
+ $("admin-tests").innerHTML=error?'<div class="item">'+esc(error.message)+'</div>':data?.length?data.map(t=>'<div class="item row"><div><h3>'+esc(t.title)+'</h3><p class="muted small">'+esc(t.test_type)+' · '+t.duration_minutes+' min · '+t.question_count+' questions · '+esc(t.status)+'</p></div><div class="owner-action-buttons"><button class="btn secondary" data-publish="'+t.id+'" '+(t.status==="published"?"disabled":"")+'>Publish</button><button class="btn secondary" data-delete-test="'+t.id+'">Delete test</button></div></div>').join(""):'<div class="item">No tests created yet.</div>';
+ document.querySelectorAll("[data-publish]").forEach(b=>b.addEventListener("click",async()=>{const {error}=await sb.from("tests").update({status:"published"}).eq("id",b.dataset.publish);if(error)message(error.message,true);else{message("Test published. Add questions before students attempt it.");await loadTests()}}));
+ document.querySelectorAll("[data-delete-test]").forEach(b=>b.addEventListener("click",async()=>{
+  if(!confirm("Permanently delete this test and its questions? If students have attempts or results, deletion may be blocked to protect their records."))return;
+  const {error}=await sb.from("tests").delete().eq("id",b.dataset.deleteTest);
+  if(error){message("Test was not deleted. Existing attempts or results may refer to it, so its history is protected. Details: "+error.message,true);return}
+  message("Test and its questions permanently deleted.");await loadTests();await loadOwnerOverview();
+ }));
+}
 async function loadResults(){const {data,error}=await sb.from("results").select("id,student_id,test_id,score,max_score,rank,published_at").order("created_at",{ascending:false}).limit(100);$("admin-results").innerHTML=error?'<div class="item">'+esc(error.message)+'</div>':data?.length?data.map(r=>'<div class="item row"><span>Result #'+r.id+' · '+esc(r.score)+'/'+esc(r.max_score)+' · '+(r.published_at?"Published":"Pending review")+'</span><button class="btn secondary" data-result="'+r.id+'" '+(r.published_at?"disabled":"")+'>Approve</button></div>').join(""):'<div class="item">No results to review yet.</div>';document.querySelectorAll("[data-result]").forEach(b=>b.addEventListener("click",async()=>{const {error}=await sb.from("results").update({published_at:new Date().toISOString()}).eq("id",b.dataset.result);if(error)message(error.message,true);else{message("Result published.");await loadResults()}}))}
 document.addEventListener("DOMContentLoaded",()=>{initRegistrationCourses();register();login();studentDash();logout("logout","index.html");adminLogin();adminDash()});
