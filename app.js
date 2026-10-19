@@ -58,7 +58,7 @@ async function studentDash(){
   if($("stat-stream"))$("stat-stream").textContent=stream;
   const {data:tests,error}=await sb.from("tests").select("id,title,test_type,duration_minutes,question_count,starts_at,ends_at").eq("status","published").order("created_at",{ascending:false});
   if($("stat-tests"))$("stat-tests").textContent=error?"—":String(tests?.length??0);
-  $("tests").innerHTML=error?'<div class="item">Tests could not be loaded: '+esc(error.message)+'</div>':tests?.length?tests.map(t=>'<div class="item student-test-card"><div class="student-test-card-head"><div><h3>'+esc(t.title)+'</h3><p class="muted">'+esc(t.test_type)+' · '+t.duration_minutes+' minutes · '+t.question_count+' questions</p></div><span class="student-chip">'+(t.test_type==="live"?"LIVE TEST":"PRACTICE")+'</span></div><button class="btn secondary" type="button" data-preview-test="'+t.id+'">View questions ↓</button><div id="question-preview-'+t.id+'" class="student-question-preview" hidden></div><p class="small muted">Question preview only. Timed attempts and answer submission are not enabled yet.</p></div>').join(""):'<div class="item">No published tests available yet.</div>';
+  $("tests").innerHTML=error?'<div class="item">Tests could not be loaded: '+esc(error.message)+'</div>':tests?.length?tests.map(t=>'<div class="item student-test-card"><div class="student-test-card-head"><div><h3>'+esc(t.title)+'</h3><p class="muted">'+esc(t.test_type)+' · '+t.duration_minutes+' minutes · '+t.question_count+' questions</p></div><span class="student-chip">'+(t.test_type==="live"?"LIVE MOCK":t.test_type==="mock"?"NORMAL MOCK":"PRACTICE")+'</span></div><button class="btn secondary" type="button" data-preview-test="'+t.id+'">View questions ↓</button><div id="question-preview-'+t.id+'" class="student-question-preview" hidden></div><p class="small muted">Question preview only. Timed attempts and answer submission are not enabled yet.</p></div>').join(""):'<div class="item">No published tests available yet.</div>';
   $("tests").querySelectorAll("[data-preview-test]").forEach(btn=>btn.addEventListener("click",async()=>{
    const id=btn.dataset.previewTest,container=$("question-preview-"+id);
    if(!container)return;
@@ -271,39 +271,50 @@ async function loadSchedules(){
   const countLabel=t.savedCount===null?"Could not check":t.savedCount+" / "+t.question_count+" questions imported";
   const complete=t.savedCount===t.question_count&&t.answerCount===t.question_count;
   const canPublish=complete&&t.status!=="published";
+  const type=t.test_type||"practice";
+  const isLive=type==="live";
   return '<form class="item schedule-test-form" data-schedule-test="'+t.id+'" style="padding:18px;margin:0 0 14px;border:1px solid #edf0f6;border-radius:12px;background:#fff">'+
-   '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap"><div><h3 style="margin:0 0 7px">'+esc(t.title)+'</h3><p class="muted small" style="margin:0">'+esc(t.test_type)+' · '+t.duration_minutes+' minutes · '+esc(t.status)+'</p></div><strong style="font-size:12px;color:'+(complete?'#16845d':'#a66a10')+'">'+esc(countLabel)+'</strong></div>'+
+   '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap"><div><h3 style="margin:0 0 7px">'+esc(t.title)+'</h3><p class="muted small" style="margin:0">'+(isLive?"Live mock test — fixed time window":type==="mock"?"Normal mock test — available anytime":"Practice test — available anytime")+' · '+t.duration_minutes+' minutes · '+esc(t.status)+'</p></div><strong style="font-size:12px;color:'+(complete?'#16845d':'#a66a10')+'">'+esc(countLabel)+'</strong></div>'+
    '<p class="muted small" style="margin:10px 0 14px">'+(complete?'Question paper and answer keys are complete.':('Need '+Math.max(0,t.question_count-(t.savedCount||0))+' more question(s); answer keys saved for '+t.answerCount+'.'))+'</p>'+
-   '<div class="owner-form-grid"><div class="field"><label>Test start date & time</label><input type="datetime-local" name="starts_at" value="'+localValue(t.starts_at)+'" required></div><div class="field"><label>Test end date & time</label><input type="datetime-local" name="ends_at" value="'+localValue(t.ends_at)+'" required></div></div>'+
-   '<div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:12px"><button class="btn secondary" type="submit" name="action" value="save">Save schedule</button><button class="btn primary" type="submit" name="action" value="publish" '+(!canPublish?'disabled':'')+'>'+(t.status==="published"?'Already published':'Save schedule & publish')+'</button></div>'+
-   (t.status==="published"?'<p class="muted small">This test is published. Verify student availability and the timed exam workflow before conducting a live exam.</p>':'')+
+   '<div class="owner-form-grid"><div class="field"><label>Availability / test type</label><select name="test_type"><option value="practice" '+(type==="practice"?"selected":"")+'>Practice test — anyone can attempt anytime</option><option value="mock" '+(type==="mock"?"selected":"")+'>Normal mock test — anyone can attempt anytime</option><option value="live" '+(isLive?"selected":"")+'>Live mock test — fixed start and end time</option></select></div><div class="field schedule-datetime" '+(!isLive?'hidden':'')+'><label>Test start date & time</label><input type="datetime-local" name="starts_at" value="'+localValue(t.starts_at)+'" '+(isLive?'required':'')+'></div><div class="field schedule-datetime" '+(!isLive?'hidden':'')+'><label>Test end date & time</label><input type="datetime-local" name="ends_at" value="'+localValue(t.ends_at)+'" '+(isLive?'required':'')+'></div></div>'+
+   '<div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:12px"><button class="btn secondary" type="submit" name="action" value="save">Save availability</button><button class="btn primary" type="submit" name="action" value="publish" '+(!canPublish?'disabled':'')+'>'+(t.status==="published"?'Already published':'Save & publish')+'</button></div>'+
+   (t.status==="published"?'<p class="muted small">This test is published. Live-test time restrictions still need to be enforced by the timed exam/attempt workflow.</p>':'')+
    '</form>';
  }).join("");
- host.querySelectorAll("[data-schedule-test]").forEach(form=>form.addEventListener("submit",async e=>{
-  e.preventDefault();
-  const btn=e.submitter,action=btn?.value||"save",id=form.dataset.scheduleTest;
-  const start=form.elements.starts_at.value,end=form.elements.ends_at.value;
-  if(!start||!end){message("Enter both the start and end date/time.",true);return}
-  const startsAt=new Date(start),endsAt=new Date(end);
-  if(Number.isNaN(startsAt.getTime())||Number.isNaN(endsAt.getTime())||endsAt<=startsAt){message("The end time must be later than the start time.",true);return}
-  if(action==="publish"){
-   const {data:test,error:te}=await sb.from("tests").select("id,question_count,status").eq("id",id).single();
-   if(te){message("Could not verify test: "+te.message,true);return}
-   const {data:qs,error:qe}=await sb.from("questions").select("id").eq("test_id",id);
-   if(qe){message("Could not check imported questions: "+qe.message,true);return}
-   const questions=qs||[];
-   if(questions.length!==test.question_count){message("Cannot publish yet. This test needs exactly "+test.question_count+" questions; "+questions.length+" are saved.",true);return}
-   const {data:keys,error:ke}=await sb.from("answer_keys").select("question_id").in("question_id",questions.map(q=>q.id));
-   if(ke){message("Could not verify answer keys: "+ke.message,true);return}
-   if((keys||[]).length!==questions.length){message("Cannot publish yet. Some imported questions are missing correct answers.",true);return}
-  }
-  const payload={starts_at:startsAt.toISOString(),ends_at:endsAt.toISOString()};
-  if(action==="publish")payload.status="published";
-  const {error:saveError}=await sb.from("tests").update(payload).eq("id",id);
-  if(saveError){message("Could not save schedule: "+saveError.message,true);return}
-  message(action==="publish"?"Schedule saved and test published.":"Test schedule saved.");
-  await loadSchedules();await loadTests();await loadOwnerOverview();
- }));
+ host.querySelectorAll("[data-schedule-test]").forEach(form=>{
+  const typeSelect=form.elements.test_type;
+  const dateFields=[...form.querySelectorAll(".schedule-datetime")];
+  const syncAvailability=()=>{const live=typeSelect.value==="live";dateFields.forEach(w=>{w.hidden=!live;const input=w.querySelector("input");input.required=live})};
+  typeSelect.addEventListener("change",syncAvailability);syncAvailability();
+  form.addEventListener("submit",async e=>{
+   e.preventDefault();
+   const btn=e.submitter,action=btn?.value||"save",id=form.dataset.scheduleTest,type=form.elements.test_type.value;
+   const start=form.elements.starts_at.value,end=form.elements.ends_at.value;
+   let startsAt=null,endsAt=null;
+   if(type==="live"){
+    if(!start||!end){message("For a live mock test, enter both the start and end date/time.",true);return}
+    startsAt=new Date(start);endsAt=new Date(end);
+    if(Number.isNaN(startsAt.getTime())||Number.isNaN(endsAt.getTime())||endsAt<=startsAt){message("The live test end time must be later than its start time.",true);return}
+   }
+   if(action==="publish"){
+    const {data:test,error:te}=await sb.from("tests").select("id,question_count,status").eq("id",id).single();
+    if(te){message("Could not verify test: "+te.message,true);return}
+    const {data:qs,error:qe}=await sb.from("questions").select("id").eq("test_id",id);
+    if(qe){message("Could not check imported questions: "+qe.message,true);return}
+    const questions=qs||[];
+    if(questions.length!==test.question_count){message("Cannot publish yet. This test needs exactly "+test.question_count+" questions; "+questions.length+" are saved.",true);return}
+    const {data:keys,error:ke}=await sb.from("answer_keys").select("question_id").in("question_id",questions.map(q=>q.id));
+    if(ke){message("Could not verify answer keys: "+ke.message,true);return}
+    if((keys||[]).length!==questions.length){message("Cannot publish yet. Some imported questions are missing correct answers.",true);return}
+   }
+   const payload={test_type:type,starts_at:startsAt?startsAt.toISOString():null,ends_at:endsAt?endsAt.toISOString():null};
+   if(action==="publish")payload.status="published";
+   const {error:saveError}=await sb.from("tests").update(payload).eq("id",id);
+   if(saveError){message("Could not save availability: "+saveError.message,true);return}
+   message(action==="publish"?"Availability saved and test published.":"Test availability saved.");
+   await loadSchedules();await loadTests();await loadOwnerOverview();
+  });
+ });
 }
 async function loadResults(){const {data,error}=await sb.from("results").select("id,student_id,test_id,score,max_score,rank,published_at").order("created_at",{ascending:false}).limit(100);$("admin-results").innerHTML=error?'<div class="item">'+esc(error.message)+'</div>':data?.length?data.map(r=>'<div class="item row"><span>Result #'+r.id+' · '+esc(r.score)+'/'+esc(r.max_score)+' · '+(r.published_at?"Published":"Pending review")+'</span><button class="btn secondary" data-result="'+r.id+'" '+(r.published_at?"disabled":"")+'>Approve</button></div>').join(""):'<div class="item">No results to review yet.</div>';document.querySelectorAll("[data-result]").forEach(b=>b.addEventListener("click",async()=>{const {error}=await sb.from("results").update({published_at:new Date().toISOString()}).eq("id",b.dataset.result);if(error)message(error.message,true);else{message("Result published.");await loadResults()}}))}
 document.addEventListener("DOMContentLoaded",()=>{initRegistrationCourses();register();login();studentDash();logout("logout","index.html");adminLogin();adminDash()});
