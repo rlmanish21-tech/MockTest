@@ -21,3 +21,12 @@ select id, course_id
 from public.tests
 where course_id is not null
 on conflict (test_id, course_id) do nothing;
+
+-- Allow the owner to permanently remove a test and its dependent records.
+-- Deleting a test also deletes attempts, saved answers (via attempts), and results.
+alter table public.attempts drop constraint if exists attempts_test_id_fkey;
+alter table public.attempts add constraint attempts_test_id_fkey
+  foreign key (test_id) references public.tests(id) on delete cascade;
+alter table public.results drop constraint if exists results_test_id_fkey;
+alter table public.results add constraint results_test_id_fkey
+  foreign key (test_id) references public.tests(id) on delete cascade;
