@@ -237,23 +237,14 @@ async function importExcelQuestions(e){
 async function loadTests(){
  const {data,error}=await sb.from("tests").select("id,title,status,test_type,duration_minutes,question_count").order("created_at",{ascending:false});
  const rows=data||[];
- $("admin-tests").innerHTML=error?'<div class="item">'+esc(error.message)+'</div>':rows.length?rows.map(t=>'<div class="item row"><div><h3>'+esc(t.title)+'</h3><p class="muted small">'+esc(t.test_type)+' · '+t.duration_minutes+' min · '+t.question_count+' questions · '+esc(t.status)+'</p></div><div class="owner-action-buttons"><button class="btn secondary" data-publish="'+t.id+'" '+(t.status==="published"?"disabled":"")+'>Publish</button><button class="btn secondary" data-delete-test="'+t.id+'">Delete test</button></div></div>').join(""):'<div class="item">No tests created yet.</div>';
+ $("admin-tests").innerHTML=error?'<div class="item">'+esc(error.message)+'</div>':rows.length?rows.map(t=>'<div class="item row"><div><h3>'+esc(t.title)+'</h3><p class="muted small">'+esc(t.test_type)+' · '+t.duration_minutes+' min · '+t.question_count+' questions · '+esc(t.status)+'</p></div><div class="owner-action-buttons"><button class="btn primary" type="button" data-open-schedule="'+t.id+'">Schedule test →</button><button class="btn secondary" data-delete-test="'+t.id+'">Delete test</button></div></div>').join(""):'<div class="item">No tests created yet.</div>';
  const selector=$("question-test"),previous=selector.value;
  selector.innerHTML=rows.length?'<option value="">Select a test</option>'+rows.map(t=>'<option value="'+t.id+'">'+esc(t.title)+' ('+esc(t.status)+')</option>').join(""):'<option value="">Create a test first</option>';
  if(rows.some(t=>String(t.id)===previous))selector.value=previous;
- document.querySelectorAll("[data-publish]").forEach(b=>b.addEventListener("click",async()=>{
-  const id=b.dataset.publish;
-  const {data:test,error:te}=await sb.from("tests").select("id,question_count").eq("id",id).single();
-  if(te){message("Could not check test: "+te.message,true);return}
-  const {data:qs,error:qe}=await sb.from("questions").select("id").eq("test_id",id);
-  if(qe){message("Could not validate questions: "+qe.message,true);return}
-  const questions=qs||[];
-  if(questions.length!==test.question_count){message("Cannot publish: add exactly "+test.question_count+" questions first. Currently saved: "+questions.length+".",true);return}
-  const {data:keys,error:ke}=await sb.from("answer_keys").select("question_id").in("question_id",questions.map(q=>q.id));
-  if(ke){message("Could not verify answer keys: "+ke.message,true);return}
-  if((keys||[]).length!==questions.length){message("Cannot publish: one or more questions are missing a correct answer.",true);return}
-  const {error}=await sb.from("tests").update({status:"published"}).eq("id",id);
-  if(error)message("Could not publish test: "+error.message,true);else{message("Test published. The timed student test-taking workflow still needs to be built.");await loadTests();await loadOwnerOverview()}
+ document.querySelectorAll("[data-open-schedule]").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".admin-view").forEach(page=>{page.hidden=page.id!=="schedule-section"});
+  document.querySelectorAll(".owner-nav").forEach(item=>item.classList.toggle("active",item.dataset.adminPage==="schedule-section"));
+  window.scrollTo({top:0,behavior:"smooth"});
  }));
  document.querySelectorAll("[data-delete-test]").forEach(b=>b.addEventListener("click",async()=>{
   if(!confirm("Permanently delete this test and its questions? Existing attempts or results may prevent deletion to protect records."))return;
