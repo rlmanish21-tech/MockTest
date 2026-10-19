@@ -80,7 +80,7 @@ async function studentDash(){
 }
 async function logout(id,redirect){const b=$(id);if(b)b.addEventListener("click",async()=>{if(sb)await sb.auth.signOut();location.href=redirect})}
 async function adminLogin(){const f=$("admin-login-form");if(!f)return;f.addEventListener("submit",async e=>{e.preventDefault();if(!need())return;const {data,error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error){message("Owner login failed: "+error.message,true);return}const {data:isAdmin,error:roleError}=await sb.rpc("is_admin");if(roleError){await sb.auth.signOut();message("Could not verify owner access: "+roleError.message,true);return}if(isAdmin!==true){await sb.auth.signOut();message("Signed in, but this account is not authorised for owner access. Check the admin role for this exact Auth user.",true);return}location.href="admin-dashboard.html"})}
-async function adminDash(){if(!$("admin-tests"))return;if(!need())return;const {data:{user},error:userError}=await sb.auth.getUser();if(userError||!user){location.href="admin.html";return}const {data:isAdmin,error:roleError}=await sb.rpc("is_admin");if(roleError||isAdmin!==true){message("Owner access verification failed. Please sign in again.",true);await sb.auth.signOut();location.href="admin.html";return}await loadCourses();await loadTests();await loadQuestions();await loadResults();await loadOwnerOverview();await loadStudents();$("export-students").addEventListener("click",exportStudentsCsv);$("course-form").addEventListener("submit",async e=>{e.preventDefault();const {error}=await sb.from("courses").insert({name:$("course-name").value.trim(),stream:$("course-stream").value,is_active:true});if(error)message(error.message,true);else{message("Course added.");$("course-form").reset();await loadCourses()}});$("question-test").addEventListener("change",loadQuestions);$("excel-question-form").addEventListener("submit",importExcelQuestions);$("download-question-template").addEventListener("click",downloadQuestionTemplate);$("test-form").addEventListener("submit",async e=>{e.preventDefault();const payload={title:$("test-title").value.trim(),course_id:Number($("test-course").value),test_type:$("test-type").value,duration_minutes:Number($("test-duration").value),question_count:Number($("test-count").value),starts_at:$("test-start").value?new Date($("test-start").value).toISOString():null,ends_at:$("test-end").value?new Date($("test-end").value).toISOString():null,created_by:user.id,status:"draft"};const {error}=await sb.from("tests").insert(payload);if(error)message(error.message,true);else{message("Draft test created. Questions and publishing workflow are next.");$("test-form").reset();await loadTests()}});$("admin-logout").addEventListener("click",async()=>{await sb.auth.signOut();location.href="admin.html"})}
+async function adminDash(){if(!$("admin-tests"))return;if(!need())return;const {data:{user},error:userError}=await sb.auth.getUser();if(userError||!user){location.href="admin.html";return}const {data:isAdmin,error:roleError}=await sb.rpc("is_admin");if(roleError||isAdmin!==true){message("Owner access verification failed. Please sign in again.",true);await sb.auth.signOut();location.href="admin.html";return}await loadCourses();await loadTests();await loadQuestions();await loadSchedules();await loadResults();await loadOwnerOverview();await loadStudents();$("export-students").addEventListener("click",exportStudentsCsv);$("course-form").addEventListener("submit",async e=>{e.preventDefault();const {error}=await sb.from("courses").insert({name:$("course-name").value.trim(),stream:$("course-stream").value,is_active:true});if(error)message(error.message,true);else{message("Course added.");$("course-form").reset();await loadCourses()}});$("question-test").addEventListener("change",loadQuestions);$("excel-question-form").addEventListener("submit",importExcelQuestions);$("download-question-template").addEventListener("click",downloadQuestionTemplate);$("test-form").addEventListener("submit",async e=>{e.preventDefault();const payload={title:$("test-title").value.trim(),course_id:Number($("test-course").value),test_type:$("test-type").value,duration_minutes:Number($("test-duration").value),question_count:Number($("test-count").value),starts_at:$("test-start").value?new Date($("test-start").value).toISOString():null,ends_at:$("test-end").value?new Date($("test-end").value).toISOString():null,created_by:user.id,status:"draft"};const {error}=await sb.from("tests").insert(payload);if(error)message(error.message,true);else{message("Draft test created. Questions and publishing workflow are next.");$("test-form").reset();await loadTests()}});$("admin-logout").addEventListener("click",async()=>{await sb.auth.signOut();location.href="admin.html"})}
 let ownerStudentRows=[];
 async function loadOwnerOverview(){
  const specs=[
@@ -225,9 +225,10 @@ async function importExcelQuestions(e){
    throw new Error("Answer keys could not be saved; the imported questions were rolled back. "+keyError.message);
   }
   message("Saved "+saved.length+" questions and their answer keys to the selected draft test.");
-  if(help)help.textContent="Successfully saved "+saved.length+" questions from "+file.name+" to the selected test.";
+  if(help)help.textContent="Successfully saved "+saved.length+" questions from "+file.name+" to the selected test. You can now schedule it.";
   $("excel-question-form").reset();
   await loadQuestions();
+  await loadSchedules();
  }catch(err){
   if(help)help.textContent=err.message||String(err);
   message("Excel import failed: "+(err.message||String(err)),true);
@@ -259,6 +260,58 @@ async function loadTests(){
   const {error}=await sb.from("tests").delete().eq("id",b.dataset.deleteTest);
   if(error){message("Test was not deleted. Existing attempts or results may refer to it. Details: "+error.message,true);return}
   message("Test and its questions permanently deleted.");await loadTests();await loadQuestions();await loadOwnerOverview();
+ }));
+}
+async function loadSchedules(){
+ const host=$("schedule-tests");if(!host)return;
+ const {data:tests,error}=await sb.from("tests").select("id,title,status,test_type,duration_minutes,question_count,starts_at,ends_at").order("created_at",{ascending:false});
+ if(error){host.innerHTML='<div class="item">Could not load tests: '+esc(error.message)+'</div>';return}
+ const rows=tests||[];
+ if(!rows.length){host.innerHTML='<div class="item">No tests yet. First create a draft in the Tests section.</div>';return}
+ const counts=await Promise.all(rows.map(async t=>{
+  const {count,error:ce}=await sb.from("questions").select("id",{count:"exact",head:true}).eq("test_id",t.id);
+  const {data:qs,error:qe}=await sb.from("questions").select("id").eq("test_id",t.id);
+  let answerCount=0;
+  if(!qe&&qs?.length){const {count:ac,error:ae}=await sb.from("answer_keys").select("question_id",{count:"exact",head:true}).in("question_id",qs.map(q=>q.id));if(!ae)answerCount=ac||0}
+  return {...t,savedCount:ce?null:(count??0),answerCount};
+ }));
+ const localValue=v=>v?new Date(v).toISOString().slice(0,16):"";
+ host.innerHTML=counts.map(t=>{
+  const countLabel=t.savedCount===null?"Could not check":t.savedCount+" / "+t.question_count+" questions imported";
+  const complete=t.savedCount===t.question_count&&t.answerCount===t.question_count;
+  const canPublish=complete&&t.status!=="published";
+  return '<form class="item schedule-test-form" data-schedule-test="'+t.id+'" style="padding:18px;margin:0 0 14px;border:1px solid #edf0f6;border-radius:12px;background:#fff">'+
+   '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap"><div><h3 style="margin:0 0 7px">'+esc(t.title)+'</h3><p class="muted small" style="margin:0">'+esc(t.test_type)+' · '+t.duration_minutes+' minutes · '+esc(t.status)+'</p></div><strong style="font-size:12px;color:'+(complete?'#16845d':'#a66a10')+'">'+esc(countLabel)+'</strong></div>'+
+   '<p class="muted small" style="margin:10px 0 14px">'+(complete?'Question paper and answer keys are complete.':('Need '+Math.max(0,t.question_count-(t.savedCount||0))+' more question(s); answer keys saved for '+t.answerCount+'.'))+'</p>'+
+   '<div class="owner-form-grid"><div class="field"><label>Test start date & time</label><input type="datetime-local" name="starts_at" value="'+localValue(t.starts_at)+'" required></div><div class="field"><label>Test end date & time</label><input type="datetime-local" name="ends_at" value="'+localValue(t.ends_at)+'" required></div></div>'+
+   '<div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:12px"><button class="btn secondary" type="submit" name="action" value="save">Save schedule</button><button class="btn primary" type="submit" name="action" value="publish" '+(!canPublish?'disabled':'')+'>'+(t.status==="published"?'Already published':'Save schedule & publish')+'</button></div>'+
+   (t.status==="published"?'<p class="muted small">This test is published. Verify student availability and the timed exam workflow before conducting a live exam.</p>':'')+
+   '</form>';
+ }).join("");
+ host.querySelectorAll("[data-schedule-test]").forEach(form=>form.addEventListener("submit",async e=>{
+  e.preventDefault();
+  const btn=e.submitter,action=btn?.value||"save",id=form.dataset.scheduleTest;
+  const start=form.elements.starts_at.value,end=form.elements.ends_at.value;
+  if(!start||!end){message("Enter both the start and end date/time.",true);return}
+  const startsAt=new Date(start),endsAt=new Date(end);
+  if(Number.isNaN(startsAt.getTime())||Number.isNaN(endsAt.getTime())||endsAt<=startsAt){message("The end time must be later than the start time.",true);return}
+  if(action==="publish"){
+   const {data:test,error:te}=await sb.from("tests").select("id,question_count,status").eq("id",id).single();
+   if(te){message("Could not verify test: "+te.message,true);return}
+   const {data:qs,error:qe}=await sb.from("questions").select("id").eq("test_id",id);
+   if(qe){message("Could not check imported questions: "+qe.message,true);return}
+   const questions=qs||[];
+   if(questions.length!==test.question_count){message("Cannot publish yet. This test needs exactly "+test.question_count+" questions; "+questions.length+" are saved.",true);return}
+   const {data:keys,error:ke}=await sb.from("answer_keys").select("question_id").in("question_id",questions.map(q=>q.id));
+   if(ke){message("Could not verify answer keys: "+ke.message,true);return}
+   if((keys||[]).length!==questions.length){message("Cannot publish yet. Some imported questions are missing correct answers.",true);return}
+  }
+  const payload={starts_at:startsAt.toISOString(),ends_at:endsAt.toISOString()};
+  if(action==="publish")payload.status="published";
+  const {error:saveError}=await sb.from("tests").update(payload).eq("id",id);
+  if(saveError){message("Could not save schedule: "+saveError.message,true);return}
+  message(action==="publish"?"Schedule saved and test published.":"Test schedule saved.");
+  await loadSchedules();await loadTests();await loadOwnerOverview();
  }));
 }
 async function loadResults(){const {data,error}=await sb.from("results").select("id,student_id,test_id,score,max_score,rank,published_at").order("created_at",{ascending:false}).limit(100);$("admin-results").innerHTML=error?'<div class="item">'+esc(error.message)+'</div>':data?.length?data.map(r=>'<div class="item row"><span>Result #'+r.id+' · '+esc(r.score)+'/'+esc(r.max_score)+' · '+(r.published_at?"Published":"Pending review")+'</span><button class="btn secondary" data-result="'+r.id+'" '+(r.published_at?"disabled":"")+'>Approve</button></div>').join(""):'<div class="item">No results to review yet.</div>';document.querySelectorAll("[data-result]").forEach(b=>b.addEventListener("click",async()=>{const {error}=await sb.from("results").update({published_at:new Date().toISOString()}).eq("id",b.dataset.result);if(error)message(error.message,true);else{message("Result published.");await loadResults()}}))}
