@@ -265,9 +265,9 @@ async function loadTests(){
   });
  });
  document.querySelectorAll("[data-delete-test]").forEach(b=>b.addEventListener("click",async()=>{
-  const id=Number(b.dataset.deleteTest);if(!confirm("Permanently delete this test and its questions? This cannot be undone."))return;
+  const id=Number(b.dataset.deleteTest);if(!confirm("Permanently delete this test, its questions, all student attempts, saved answers, and results? This cannot be undone."))return;
   const {error:delError}=await sb.from("tests").delete().eq("id",id);
-  if(delError){message("Could not delete test. Student attempts or results may be linked to it. Details: "+delError.message,true);return}
+  if(delError){message("Could not delete test. If the database migration has not been run, run supabase/multi-course-migration.sql in Supabase SQL Editor. Details: "+delError.message,true);return}
   message("Test deleted.");await loadTests();await loadQuestions();await loadOwnerOverview();
  }));
 }
