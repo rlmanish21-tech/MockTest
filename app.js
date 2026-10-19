@@ -269,6 +269,7 @@ async function loadTests(){
  selector.innerHTML=rows.length?'<option value="">Select a test</option>'+rows.map(t=>'<option value="'+t.id+'">'+esc(t.title)+' ('+esc(t.status)+')</option>').join(""):'<option value="">Create a test first</option>';
  if(rows.some(t=>String(t.id)===previous))selector.value=previous;
  document.querySelectorAll("[data-test-row]").forEach(form=>{
+  form.noValidate=true; // Prevent hidden/stale required fields from silently blocking the Publish submit handler.
   const typeSelect=form.elements.test_type,fields=[...form.querySelectorAll(".test-time-field")];
   const sync=()=>{const live=typeSelect.value==="live";fields.forEach(w=>{w.hidden=!live;w.querySelector("input").required=live})};
   typeSelect.addEventListener("change",sync);sync();
@@ -324,6 +325,7 @@ async function loadSchedules(){
    '</form>';
  }).join("");
  host.querySelectorAll("[data-schedule-test]").forEach(form=>{
+  form.noValidate=true; // Validate schedule fields in JS so failures always show a message.
   const typeSelect=form.elements.test_type;
   const dateFields=[...form.querySelectorAll(".schedule-datetime")];
   const syncAvailability=()=>{const live=typeSelect.value==="live";dateFields.forEach(w=>{w.hidden=!live;const input=w.querySelector("input");input.required=live})};
