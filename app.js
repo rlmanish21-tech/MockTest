@@ -224,8 +224,8 @@ async function importExcelQuestions(e){
    if(ids.length)await sb.from("questions").delete().in("id",ids);
    throw new Error("Answer keys could not be saved; the imported questions were rolled back. "+keyError.message);
   }
-  message("Imported "+saved.length+" questions with answer keys.");
-  if(help)help.textContent="Successfully imported "+saved.length+" questions from "+file.name+".";
+  message("Saved "+saved.length+" questions and their answer keys to the selected draft test.");
+  if(help)help.textContent="Successfully saved "+saved.length+" questions from "+file.name+" to the selected test.";
   $("excel-question-form").reset();
   await loadQuestions();
  }catch(err){
