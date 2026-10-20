@@ -104,6 +104,11 @@ after insert or update of score, max_score, test_id, student_id, published_at
 on public.results
 for each row execute function public.recalculate_result_ranks_after_change();
 
+-- Release results already scored before this migration, without requiring an admin click.
+update public.results
+   set published_at = coalesce(published_at, created_at, now())
+ where published_at is null;
+
 -- Existing RLS policy already permits each student to read their own result
 -- once published_at is non-null; the trigger now guarantees this automatically.
 notify pgrst, 'reload schema';
