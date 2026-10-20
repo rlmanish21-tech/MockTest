@@ -113,3 +113,32 @@ begin
 end;
 $$;
 grant execute on function public.get_attempt_analysis(bigint) to authenticated;
+
+-- Stop answer edits once the attempt timer or live-test window has ended,
+-- even if a student keeps the exam tab open or changes the browser clock.
+drop policy if exists answers_write_own_attempt on public.attempt_answers;
+create policy answers_write_own_attempt
+  on public.attempt_answers
+  for all to authenticated
+  using (
+    exists (
+      select 1 from public.attempts a
+      join public.tests t on t.id=a.test_id
+      where a.id=attempt_id
+        and a.student_id=auth.uid()
+        and a.status='in_progress'
+        and now() < a.started_at + make_interval(mins => t.duration_minutes)
+        and (t.test_type <> 'live' or t.ends_at is null or now() < t.ends_at)
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.attempts a
+      join public.tests t on t.id=a.test_id
+      where a.id=attempt_id
+        and a.student_id=auth.uid()
+        and a.status='in_progress'
+        and now() < a.started_at + make_interval(mins => t.duration_minutes)
+        and (t.test_type <> 'live' or t.ends_at is null or now() < t.ends_at)
+    )
+  );
