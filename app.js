@@ -46,7 +46,7 @@ async function studentDash(){
  if(!$("profile-line"))return;
  if(!need())return;
  try{
-  const {user,p}=await profile();
+  let {user,p}=await profile();
   if(!user){location.href="login.html";return}
   if(!p){await recoverStudentProfile(user);return}
   const name=p.full_name||user.user_metadata?.full_name||"Student",course=p.course_name||"Course not set",stream=p.stream||"Stream not set";
