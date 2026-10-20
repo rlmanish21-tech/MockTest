@@ -142,3 +142,6 @@ create policy answers_write_own_attempt
         and (t.test_type <> 'live' or t.ends_at is null or now() < t.ends_at)
     )
   );
+
+-- Refresh Supabase/PostgREST's function schema cache after applying this migration.
+notify pgrst, 'reload schema';
