@@ -6,6 +6,7 @@ const $=id=>document.getElementById(id);
 function message(t,error=false){const e=$("message");if(!e)return;e.textContent=t;e.className="status show "+(error?"error":"ok")}
 function studentAuthEmail(m){return "student-"+String(m).replace(/\D/g,"")+"@accounts.luupdate.in"}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function localDateTimeInput(v){if(!v)return "";const d=new Date(v);if(Number.isNaN(d.getTime()))return "";const pad=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+"T"+pad(d.getHours())+":"+pad(d.getMinutes())}
 function need(){if(!sb){message("Supabase is not configured. Add your project URL and publishable/anon key in config.js.",true);return false}return true}
 async function profile(){const {data:{user},error:userError}=await sb.auth.getUser();if(userError)throw userError;if(!user)return {user:null,p:null};const {data:p,error:profileError}=await sb.from("profiles").select("*").eq("id",user.id).maybeSingle();if(profileError)throw profileError;return {user,p}}
 async function initRegistrationCourses(){
