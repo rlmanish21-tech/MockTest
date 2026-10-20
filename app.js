@@ -51,8 +51,47 @@ async function studentDash(){
   if(!p){await recoverStudentProfile(user);return}
   const name=p.full_name||user.user_metadata?.full_name||"Student",course=p.course_name||"Course not set",stream=p.stream||"Stream not set";
   if($("welcome"))$("welcome").textContent="Welcome, "+name;
-  if($("profile-name"))$("profile-name").textContent=name;
-  if($("profile-line"))$("profile-line").textContent=course+" · "+stream+" · "+[p.city,p.state].filter(Boolean).join(", ");
+  const profileForm=$("profile-edit-form"),profileView=$("profile-view"),editButton=$("edit-profile-btn");
+  const showProfile=(data)=>{
+   const dob=data.date_of_birth?String(data.date_of_birth).slice(0,10):"Not provided";
+   const put=(id,value)=>{const el=$(id);if(el)el.textContent=value||"Not provided"};
+   put("profile-name",data.full_name||"Student");put("profile-mobile",data.mobile||"Not provided");put("profile-dob",dob);put("profile-stream",data.stream);put("profile-course",data.course_name);put("profile-qualification",data.qualification);put("profile-city",data.city);put("profile-state",data.state);put("profile-marketing",data.marketing_consent?"Opted in":"Not opted in");
+   if($("profile-line"))$("profile-line").textContent=(data.course_name||"Course not set")+" · "+(data.stream||"Stream not set")+" · "+[data.city,data.state].filter(Boolean).join(", ");
+   if($("welcome"))$("welcome").textContent="Welcome, "+(data.full_name||"Student");
+   if($("hero-course"))$("hero-course").textContent=data.course_name||"Course not set";
+   if($("stat-stream"))$("stat-stream").textContent=data.stream||"Not set";
+  };
+  const openProfileEditor=()=>{
+   $("edit-full-name").value=p.full_name||"";
+   $("edit-mobile").value=p.mobile||"";
+   $("edit-dob").value=p.date_of_birth?String(p.date_of_birth).slice(0,10):"";
+   $("edit-stream").value=p.stream||"Commerce";
+   $("edit-course").value=p.course_name||"";
+   $("edit-qualification").value=p.qualification||"";
+   $("edit-city").value=p.city||"";
+   $("edit-state").value=p.state||"";
+   $("edit-marketing").checked=Boolean(p.marketing_consent);
+   profileForm.hidden=false;profileView.hidden=true;editButton.hidden=true;
+  };
+  if(profileForm&&!profileForm.dataset.bound){
+   profileForm.dataset.bound="1";
+   editButton?.addEventListener("click",openProfileEditor);
+   $("cancel-profile-btn")?.addEventListener("click",()=>{profileForm.hidden=true;profileView.hidden=false;editButton.hidden=false});
+   profileForm.addEventListener("submit",async e=>{
+    e.preventDefault();
+    const save=$("save-profile-btn");save.disabled=true;save.textContent="Saving…";
+    const payload={full_name:$("edit-full-name").value.trim(),stream:$("edit-stream").value,course_name:$("edit-course").value.trim(),qualification:$("edit-qualification").value.trim(),city:$("edit-city").value.trim(),state:$("edit-state").value.trim(),marketing_consent:$("edit-marketing").checked};
+    if(!payload.full_name||!payload.stream||!payload.course_name||!payload.qualification||!payload.city||!payload.state){message("Please complete all required profile fields.",true);save.disabled=false;save.textContent="Save changes";return}
+    try{
+     const {data:updated,error:updateError}=await sb.from("profiles").update(payload).eq("id",user.id).select("*").single();
+     if(updateError)throw updateError;
+     p=updated;showProfile(p);profileForm.hidden=true;profileView.hidden=false;editButton.hidden=false;
+     message("Profile updated successfully. Your previous details have been replaced.");
+    }catch(err){message("Profile could not be saved: "+(err?.message||String(err)),true)}
+    finally{save.disabled=false;save.textContent="Save changes"}
+   });
+  }
+  showProfile(p);
   if($("hero-course"))$("hero-course").textContent=course;
   if($("stat-stream"))$("stat-stream").textContent=stream;
   const {data:tests,error}=await sb.from("tests").select("id,title,test_type,status,duration_minutes,question_count,starts_at,ends_at,created_at").eq("status","published").order("created_at",{ascending:false});
