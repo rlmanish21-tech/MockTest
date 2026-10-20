@@ -22,7 +22,8 @@ begin
   if not found then raise exception 'This test is not published or is no longer available.'; end if;
   if v_test.test_type='live' then
     if v_test.starts_at is not null and now()<v_test.starts_at then raise exception 'This live test has not started yet.'; end if;
-    if v_test.ends_at is not null and now()>=v_test.ends_at then raise exception 'This live test has ended.'; end if;
+    -- Live tests become practice tests two hours after their scheduled end.
+    if v_test.ends_at is not null and now()<v_test.ends_at + interval '2 hours' and now()>=v_test.ends_at then raise exception 'This live test has ended. It will be available in Practice two hours after the end time.'; end if;
   end if;
   select * into v_attempt from public.attempts
     where test_id=p_test_id and student_id=v_user and status='in_progress'
@@ -128,7 +129,7 @@ create policy answers_write_own_attempt
         and a.student_id=auth.uid()
         and a.status='in_progress'
         and now() < a.started_at + make_interval(mins => t.duration_minutes)
-        and (t.test_type <> 'live' or t.ends_at is null or now() < t.ends_at)
+        and (t.test_type <> 'live' or t.ends_at is null or now() < t.ends_at or a.started_at >= t.ends_at + interval '2 hours')
     )
   )
   with check (
