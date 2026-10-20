@@ -48,35 +48,35 @@ async function studentDash(){
   const {user,p}=await profile();
   if(!user){location.href="login.html";return}
   if(!p){await recoverStudentProfile(user);return}
-  const name=p.full_name||user.user_metadata?.full_name||"Student";
-  const course=p.course_name||"Course not set";
-  const stream=p.stream||"Stream not set";
+  const name=p.full_name||user.user_metadata?.full_name||"Student",course=p.course_name||"Course not set",stream=p.stream||"Stream not set";
   if($("welcome"))$("welcome").textContent="Welcome, "+name;
   if($("profile-name"))$("profile-name").textContent=name;
   if($("profile-line"))$("profile-line").textContent=course+" · "+stream+" · "+[p.city,p.state].filter(Boolean).join(", ");
   if($("hero-course"))$("hero-course").textContent=course;
   if($("stat-stream"))$("stat-stream").textContent=stream;
-  const {data:tests,error}=await sb.from("tests").select("id,title,test_type,duration_minutes,question_count,starts_at,ends_at").eq("status","published").order("created_at",{ascending:false});
+  const {data:tests,error}=await sb.from("tests").select("id,title,test_type,status,duration_minutes,question_count,starts_at,ends_at,created_at").eq("status","published").order("created_at",{ascending:false});
+  const {data:attempts, error:attemptError}=await sb.from("attempts").select("id,test_id,status,started_at,submitted_at,score,max_score").eq("student_id",user.id).order("started_at",{ascending:false});
+  const {data:rs,error:resultError}=await sb.from("results").select("score,max_score,rank,test_id,published_at").eq("student_id",user.id).not("published_at","is",null);
   if($("stat-tests"))$("stat-tests").textContent=error?"—":String(tests?.length??0);
-  $("tests").innerHTML=error?'<div class="item">Tests could not be loaded: '+esc(error.message)+'</div>':tests?.length?tests.map(t=>'<div class="item student-test-card"><div class="student-test-card-head"><div><h3>'+esc(t.title)+'</h3><p class="muted">'+esc(t.test_type)+' · '+t.duration_minutes+' minutes · '+t.question_count+' questions</p></div><span class="student-chip">'+(t.test_type==="live"?"LIVE MOCK":t.test_type==="mock"?"NORMAL MOCK":"PRACTICE")+'</span></div><button class="btn secondary" type="button" data-preview-test="'+t.id+'">View questions ↓</button><div id="question-preview-'+t.id+'" class="student-question-preview" hidden></div><p class="small muted">Question preview only. Timed attempts and answer submission are not enabled yet.</p></div>').join(""):'<div class="item">No published tests available yet.</div>';
-  $("tests").querySelectorAll("[data-preview-test]").forEach(btn=>btn.addEventListener("click",async()=>{
-   const id=btn.dataset.previewTest,container=$("question-preview-"+id);
-   if(!container)return;
-   if(!container.hidden){container.hidden=true;btn.textContent="View questions ↓";return}
-   container.hidden=false;container.innerHTML='<div class="student-results-empty">Loading questions…</div>';btn.textContent="Hide questions ↑";
-   const {data:qs,error:qError}=await sb.from("questions").select("id,question_text,option_a,option_b,option_c,option_d,question_order").eq("test_id",id).order("question_order");
-   if(qError){container.innerHTML='<div class="student-results-empty">Questions could not be loaded: '+esc(qError.message)+'</div>';return}
-   container.innerHTML=qs?.length?qs.map(q=>'<article class="student-question-card"><div class="student-question-number">QUESTION '+q.question_order+'</div><h4>'+esc(q.question_text)+'</h4><div class="student-question-options"><div><span>A</span>'+esc(q.option_a)+'</div><div><span>B</span>'+esc(q.option_b)+'</div><div><span>C</span>'+esc(q.option_c)+'</div><div><span>D</span>'+esc(q.option_d)+'</div></div></article>').join(""):'<div class="student-results-empty">No questions have been added to this test yet.</div>';
-  }));
-  const {data:rs,error:resultError}=await sb.from("results").select("score,max_score,rank,test_id").eq("student_id",user.id).not("published_at","is",null);
   if($("stat-results"))$("stat-results").textContent=resultError?"—":String(rs?.length??0);
-  $("results").innerHTML=resultError?'<div class="student-results-empty">Published results could not be loaded: '+esc(resultError.message)+'</div>':rs?.length?rs.map(r=>'<div class="item"><h3>Test result</h3><p class="muted">Score: '+esc(r.score)+' / '+esc(r.max_score)+' · Rank: '+esc(r.rank??"Pending")+'</p></div>').join(""):'<div class="student-results-empty">No published results yet. Once a result is released, it will appear here.</div>';
- }catch(err){
-  message("Could not load your profile: "+(err?.message||String(err)),true);
-  if($("profile-name"))$("profile-name").textContent="Profile unavailable";
-  if($("hero-course"))$("hero-course").textContent="Course unavailable";
-  if($("profile-line"))$("profile-line").textContent="Please refresh or sign in again.";
- }
+  const latestByTest=new Map();(attempts||[]).forEach(a=>{if(!latestByTest.has(String(a.test_id)))latestByTest.set(String(a.test_id),a)});
+  const fmtTime=v=>v?new Date(v).toLocaleString(undefined,{dateStyle:"medium",timeStyle:"short"}):"";
+  const statusFor=t=>{const now=Date.now(),start=t.starts_at?new Date(t.starts_at).getTime():null,end=t.ends_at?new Date(t.ends_at).getTime():null;if(t.test_type!=="live")return {state:"anytime",label:"Available anytime"};if(start&&now<start)return {state:"upcoming",label:"Starts in "+humanTime(start-now)};if(end&&now>=end)return {state:"ended",label:"Live test ended"};if(end&&end-now<3600000)return {state:"ending",label:"Live test ending in "+humanTime(end-now)};return {state:"live",label:end?"Live now · ends in "+humanTime(end-now):"Live now"}};
+  const renderTests=()=>{if(error){$("tests").innerHTML='<div class="item">Tests could not be loaded: '+esc(error.message)+'</div>';return}if(attemptError){$("tests").innerHTML='<div class="item">Attempt history could not be loaded: '+esc(attemptError.message)+'</div>';return}
+   $("tests").innerHTML=tests?.length?tests.map(t=>{const a=latestByTest.get(String(t.id)),availability=statusFor(t),done=a&&a.status!=="in_progress",isLive=t.test_type==="live",locked=availability.state==="upcoming"||availability.state==="ended";let action="";
+    if(a?.status==="in_progress")action='<button class="btn primary" data-start-attempt="'+t.id+'" data-resume="'+a.id+'">Resume attempt</button>';
+    else action='<button class="btn primary" data-start-attempt="'+t.id+'" '+(locked?'disabled title="This live test is not open."':'')+'>'+(done?"Reattempt":"Attempt test")+'</button>';
+    const analysis=done?'<a class="btn secondary" href="exam.html?attempt_id='+encodeURIComponent(a.id)+'&view=analysis" target="_blank" rel="noopener">View analysis</a>':"";
+    return '<article class="item student-test-card"><div class="student-test-card-head"><div><h3>'+esc(t.title)+'</h3><p class="muted">'+Number(t.question_count||0)+' questions · '+Number(t.duration_minutes||0)+' minutes</p><p class="small muted">'+esc(isLive?"Live test":t.test_type==="mock"?"Mock test":"Practice test")+(t.starts_at?" · Starts: "+esc(fmtTime(t.starts_at)):"")+(t.ends_at?" · Ends: "+esc(fmtTime(t.ends_at)):"")+'</p></div><span class="student-chip">'+esc(isLive?"LIVE TEST":t.test_type==="mock"?"MOCK TEST":"PRACTICE")+'</span></div><div class="test-availability '+esc(availability.state)+'" data-live-clock="'+t.id+'" data-start="'+esc(t.starts_at||"")+'" data-end="'+esc(t.ends_at||"")+'" data-kind="'+esc(t.test_type)+'">'+esc(availability.label)+'</div><div class="student-test-actions">'+action+analysis+'</div>'+(a?'<p class="small muted">Previous attempt: '+esc(a.status==="in_progress"?"In progress":a.submitted_at?fmtTime(a.submitted_at):"Submitted")+(a.score!==null&&a.score!==undefined?' · Score '+esc(a.score)+' / '+esc(a.max_score):"")+'</p>':"")+'</article>';
+   }).join(""):'<div class="student-results-empty">No published tests available yet.</div>';
+   $("tests").querySelectorAll("[data-start-attempt]").forEach(btn=>btn.addEventListener("click",async()=>{const tab=window.open("about:blank","_blank");btn.disabled=true;try{let attemptId=btn.dataset.resume;if(!attemptId){const {data,error}=await sb.rpc("start_test_attempt",{p_test_id:Number(btn.dataset.startAttempt)});if(error)throw error;attemptId=data?.attempt_id||data?.id||data;if(typeof attemptId==="object")attemptId=attemptId.attempt_id;if(!attemptId)throw new Error("The server did not return an attempt ID.");}if(tab)tab.location.href="exam.html?attempt_id="+encodeURIComponent(attemptId);else window.location.href="exam.html?attempt_id="+encodeURIComponent(attemptId);}catch(err){if(tab)tab.close();message("Could not start test: "+(err?.message||err),true)}finally{btn.disabled=false}}));
+  };
+  function humanTime(ms){const total=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(total/3600),m=Math.floor((total%3600)/60),s=total%60;return h? h+"h "+m+"m":m?m+"m "+s+"s":s+"s"}
+  renderTests();
+  if(window.studentClockInterval)clearInterval(window.studentClockInterval);
+  window.studentClockInterval=setInterval(()=>{document.querySelectorAll("[data-live-clock]").forEach(el=>{const start=el.dataset.start?new Date(el.dataset.start).getTime():null,end=el.dataset.end?new Date(el.dataset.end).getTime():null,now=Date.now();if(el.dataset.kind!=="live")return;if(start&&now<start)el.textContent="Starts in "+humanTime(start-now);else if(end&&now>=end)el.textContent="Live test ended";else if(end&&end-now<3600000)el.textContent="Live test ending in "+humanTime(end-now);else el.textContent=end?"Live now · ends in "+humanTime(end-now):"Live now";});},1000);
+  $("results").innerHTML=resultError?'<div class="student-results-empty">Published results could not be loaded: '+esc(resultError.message)+'</div>':rs?.length?rs.map(r=>{const t=(tests||[]).find(x=>String(x.id)===String(r.test_id));return '<div class="item"><h3>'+esc(t?.title||"Test result")+'</h3><p class="muted">Score: '+esc(r.score)+' / '+esc(r.max_score)+' · Rank: '+esc(r.rank??"Pending")+'</p></div>'}).join(""):'<div class="student-results-empty">No published results yet. Once a result is released, it will appear here.</div>';
+ }catch(err){message("Could not load your profile: "+(err?.message||String(err)),true);if($("profile-name"))$("profile-name").textContent="Profile unavailable";if($("hero-course"))$("hero-course").textContent="Course unavailable";if($("profile-line"))$("profile-line").textContent="Please refresh or sign in again."}
 }
 async function logout(id,redirect){const b=$(id);if(b)b.addEventListener("click",async()=>{if(sb)await sb.auth.signOut();location.href=redirect})}
 async function adminLogin(){const f=$("admin-login-form");if(!f)return;f.addEventListener("submit",async e=>{e.preventDefault();if(!need())return;const {data,error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error){message("Owner login failed: "+error.message,true);return}const {data:isAdmin,error:roleError}=await sb.rpc("is_admin");if(roleError){await sb.auth.signOut();message("Could not verify owner access: "+roleError.message,true);return}if(isAdmin!==true){await sb.auth.signOut();message("Signed in, but this account is not authorised for owner access. Check the admin role for this exact Auth user.",true);return}location.href="admin-dashboard.html"})}
