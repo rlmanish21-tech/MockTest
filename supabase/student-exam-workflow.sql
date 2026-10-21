@@ -140,7 +140,7 @@ create policy answers_write_own_attempt
         and a.student_id=auth.uid()
         and a.status='in_progress'
         and now() < a.started_at + make_interval(mins => t.duration_minutes)
-        and (t.test_type <> 'live' or t.ends_at is null or now() < t.ends_at)
+        and (t.test_type <> 'live' or t.ends_at is null or now() < t.ends_at or a.started_at >= t.ends_at + interval '2 hours')
     )
   );
 
