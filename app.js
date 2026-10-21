@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+const LIVE_PRACTICE_GRACE_MS=2*60*60*1000;
 const cfg=window.LU_CONFIG||{};
 const configured=cfg.SUPABASE_URL&&!cfg.SUPABASE_URL.includes("YOUR-PROJECT")&&cfg.SUPABASE_ANON_KEY&&!cfg.SUPABASE_ANON_KEY.includes("YOUR_SUPABASE");
 const sb=configured?createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY):null;
@@ -101,12 +102,12 @@ async function studentDash(){
   if($("stat-results"))$("stat-results").textContent=resultError?"—":String(rs?.length??0);
   const latestByTest=new Map();(attempts||[]).forEach(a=>{if(!latestByTest.has(String(a.test_id)))latestByTest.set(String(a.test_id),a)});
   const fmtTime=v=>v?new Date(v).toLocaleString(undefined,{dateStyle:"medium",timeStyle:"short"}):"";
-  const statusFor=t=>{const now=Date.now(),start=t.starts_at?new Date(t.starts_at).getTime():null,end=t.ends_at?new Date(t.ends_at).getTime():null;const practiceAvailable=t.test_type!=="live"||(end&&now>=end+7200000);if(practiceAvailable)return {state:"anytime",label:"Available anytime"};if(start&&now<start)return {state:"upcoming",label:"Starts in "+humanTime(start-now)};if(end&&now>=end)return {state:"ended",label:"Live test ended"};if(end&&end-now<3600000)return {state:"ending",label:"Live test ending in "+humanTime(end-now)};return {state:"live",label:end?"Live now · ends in "+humanTime(end-now):"Live now"}};
+  const statusFor=t=>{const now=Date.now(),start=t.starts_at?new Date(t.starts_at).getTime():null,end=t.ends_at?new Date(t.ends_at).getTime():null;const practiceAvailable=t.test_type!=="live"||(end&&now>=end+LIVE_PRACTICE_GRACE_MS);if(practiceAvailable)return {state:"anytime",label:"Available anytime"};if(start&&now<start)return {state:"upcoming",label:"Starts in "+humanTime(start-now)};if(end&&now>=end)return {state:"ended",label:"Live test ended"};if(end&&end-now<3600000)return {state:"ending",label:"Live test ending in "+humanTime(end-now)};return {state:"live",label:end?"Live now · ends in "+humanTime(end-now):"Live now"}};
   const renderTests=()=>{
    const liveHost=$("tests"),practiceHost=$("practice-tests");
    if(error||attemptError){const errMsg=error?.message||attemptError?.message||"Unable to load tests.";const html='<div class="item">'+esc(errMsg)+'</div>';if(liveHost)liveHost.innerHTML=html;if(practiceHost)practiceHost.innerHTML=html;return}
-   const now=Date.now(),twoHours=7200000;
-   const liveTests=(tests||[]).filter(t=>t.test_type==="live"&&(!t.ends_at||now<new Date(t.ends_at).getTime()+twoHours));
+   const now=Date.now();
+   const liveTests=(tests||[]).filter(t=>t.test_type==="live"&&(!t.ends_at||now<new Date(t.ends_at).getTime()+LIVE_PRACTICE_GRACE_MS));
    const practiceTests=(tests||[]).filter(t=>t.test_type!=="live"||(t.ends_at&&now>=new Date(t.ends_at).getTime()+twoHours));
    const card=t=>{const a=latestByTest.get(String(t.id)),availability=statusFor(t),done=a&&a.status!=="in_progress",isLive=t.test_type==="live",locked=availability.state==="upcoming"||availability.state==="ended";let action="";
     if(a?.status==="in_progress")action='<button class="btn primary" data-start-attempt="'+t.id+'" data-resume="'+a.id+'">Resume attempt</button>';
