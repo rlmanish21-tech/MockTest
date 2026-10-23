@@ -125,6 +125,17 @@ async function studentDash(){
   if(window.studentClockInterval)clearInterval(window.studentClockInterval);
   window.studentClockInterval=setInterval(()=>{const now=Date.now();document.querySelectorAll("[data-live-clock]").forEach(el=>{const start=el.dataset.start?new Date(el.dataset.start).getTime():null,end=el.dataset.end?new Date(el.dataset.end).getTime():null;if(el.dataset.kind!=="live")return;if(start&&now<start)el.textContent="Starts in "+humanTime(start-now);else if(end&&now>=end)el.textContent="Live test ended";else if(end&&end-now<3600000)el.textContent="Live test ending in "+humanTime(end-now);else el.textContent=end?"Live now · ends in "+humanTime(end-now):"Live now";});if((tests||[]).some(t=>t.test_type==="live"&&t.ends_at&&now>=new Date(t.ends_at).getTime()+7200000&&now<new Date(t.ends_at).getTime()+7201500))renderTests();},1000);
   $("results").innerHTML=resultError?'<div class="student-results-empty">Published results could not be loaded: '+esc(resultError.message)+'</div>':rs?.length?rs.map(r=>{const t=(tests||[]).find(x=>String(x.id)===String(r.test_id));const rankText=r.rank!==null&&r.rank!==undefined?String(r.rank):(t?.test_type==="live"&&t.ends_at&&Date.now()<new Date(t.ends_at).getTime()?"Available after live test window ends":"Updating rank");return '<div class="item"><h3>'+esc(t?.title||"Test result")+'</h3><p class="muted">Score: '+esc(r.score)+' / '+esc(r.max_score)+' · Rank: '+esc(rankText)+'</p></div>'}).join(""):'<div class="student-results-empty">No published results yet. Once a result is released, it will appear here.</div>';
+  // Time-aware greeting; use the authenticated student's profile name when available.
+  const greetingHost=$("welcome");
+  if(greetingHost){
+    const hour=new Date().getHours();
+    const greeting=hour<12?"Good morning":hour<17?"Good afternoon":"Good evening";
+    const profileNameField=$("profile-name");
+    const profileName=(profileNameField?.value||profileNameField?.textContent||"").trim();
+    const fallbackName=(document.querySelector(".student-brand")?.textContent||"").trim();
+    const name=profileName||fallbackName||"there";
+    greetingHost.textContent=greeting+", "+name+" 👋";
+  }
   // Populate the visual overview only with real rows returned from Supabase.
   const publishedResults=(rs||[]).filter(r=>r.published_at);
   const averageHost=$("stat-average"),liveHost=$("stat-live"),streamBadge=$("hero-stream-badge"),courseBadge=$("hero-course-badge");
