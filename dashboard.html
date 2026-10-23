@@ -101,8 +101,32 @@ body.student-app{background:#f3f4ff!important;color:#20284b}
 @media(max-width:850px){.dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}.student-grid.dashboard-overview-grid{grid-template-columns:1fr!important}.student-hero{gap:16px!important}.student-course-pill{width:auto!important;min-width:0!important}.practice-overview-grid{grid-template-columns:1fr}}
 @media(max-width:480px){.dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}.dashboard-stats .student-stat strong{font-size:21px!important}.student-hero{padding:20px!important}.student-course-pill{width:calc(100% - 30px)!important}.overview-test-row{gap:7px}.overview-action{padding:8px}.practice-overview-grid{grid-template-columns:1fr}}
 
+
+/* Readability and live indicator refinement */
+.student-hero h1{font-size:clamp(26px,3vw,36px)!important;line-height:1.2!important}
+.student-hero-copy>p:not(.eyebrow){font-size:13px!important;line-height:1.65!important}
+.student-hero-badges span{font-size:10px!important}
+.student-course-pill strong{font-size:16px!important}
+.student-course-pill small{font-size:10px!important}
+.student-course-pill a{font-size:12px!important}
+.dashboard-stats .student-stat span{font-size:12px!important}
+.dashboard-stats .student-stat strong{font-size:27px!important}
+.dashboard-stats .student-stat small{font-size:11px!important}
+.student-panel-head h2{font-size:19px!important}
+.student-panel-head p{font-size:12px!important}
+.overview-test-info strong,.practice-overview-item strong{font-size:12px!important}
+.overview-test-info small,.practice-overview-item small{font-size:10px!important}
+.overview-action{font-size:11px!important}
+.student-nav{font-size:13px!important}
+.student-tip{font-size:11px!important}
+.dashboard-stats .student-stat:nth-child(4)>span{display:flex;align-items:center;gap:7px}
+.dashboard-stats .student-stat:nth-child(4)>span:before{content:"";display:inline-block;width:8px;height:8px;flex:0 0 8px;border-radius:50%;background:#18c77a;box-shadow:0 0 0 3px #18c77a22;animation:live-green-pulse 1.35s ease-in-out infinite}
+@keyframes live-green-pulse{0%,100%{opacity:1;box-shadow:0 0 0 3px #18c77a22}50%{opacity:.42;box-shadow:0 0 0 6px #18c77a12}}
+@media(prefers-reduced-motion:reduce){.dashboard-stats .student-stat:nth-child(4)>span:before{animation:none}}
+@media(max-width:480px){.dashboard-stats .student-stat strong{font-size:24px!important}.student-hero h1{font-size:25px!important}.student-hero-copy>p:not(.eyebrow){font-size:12px!important}}
+
 </style>
-<script src="config.js?v=automatic-results-1"></script><script type="module" src="app.js?v=dashboard-overview-2"></script>
+<script src="config.js?v=automatic-results-1"></script><script type="module" src="app.js?v=dashboard-greeting-live-dot-3"></script>
 </head>
 <body class="student-app">
 <header class="student-top"><a class="student-brand" href="index.html"><span class="student-brand-mark">LU</span><span>LU <b>UPDATE</b><small>LEARN · PRACTISE · ACHIEVE</small></span></a><div class="student-top-actions"><span class="student-online">Student portal</span><button class="btn secondary" id="logout">Logout ↗</button></div></header>
