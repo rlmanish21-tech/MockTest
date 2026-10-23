@@ -42,6 +42,50 @@ body.student-app{background:linear-gradient(180deg,#f6f5ff 0,#f7f8fc 280px,#f7f8
 @media(max-width:850px){.student-sidebar{background:#fff;box-shadow:0 4px 12px #25325e04}.student-nav.active{background:#eeedff}}
 @media(prefers-reduced-motion:reduce){.student-nav,.student-app .item,.student-stat,.student-panel,.student-quick-links a{transition:none!important}}
 
+
+/* Stronger reference-inspired visual refresh; layout and functional hooks remain unchanged. */
+body.student-app{background:#f3f4ff!important;color:#20284b}
+.student-top{height:72px!important;padding-inline:clamp(16px,5vw,64px)!important;background:#fff!important;border-bottom:1px solid #e9e8f8!important;box-shadow:0 4px 22px #27205b08}
+.student-brand{font-size:19px!important;letter-spacing:-.45px}
+.student-brand-mark{width:44px!important;height:44px!important;border-radius:15px!important;background:linear-gradient(135deg,#6f5af0,#9c55e8)!important;box-shadow:0 9px 22px #7258e43b!important}
+.student-layout{grid-template-columns:238px minmax(0,1fr)!important;max-width:1680px!important;background:#f5f5ff}
+.student-sidebar{padding:29px 17px!important;background:#fff!important;border-right:1px solid #e8e8f6!important}
+.student-nav-title{padding:0 14px 13px!important;color:#9a9ab5!important}
+.student-nav{padding:13px 14px!important;border-radius:12px!important;font-size:12px!important;color:#777b9b!important}
+.student-nav.active,.student-nav:hover{background:linear-gradient(110deg,#eeecff,#f5f1ff)!important;color:#6246db!important;border-color:#e8e2ff!important}
+.student-nav.active{box-shadow:inset 3px 0 #7358ed!important}
+.student-side-help{background:linear-gradient(145deg,#f5f1ff,#fbf8ff)!important;border-color:#e9e0ff!important;padding:17px!important}
+.student-main{max-width:1400px!important;padding:31px clamp(16px,3.2vw,44px)!important}
+.student-hero{min-height:190px!important;padding:34px 36px!important;border-radius:24px!important;background:linear-gradient(115deg,#30256f 0%,#5140b8 53%,#8157e9 100%)!important;box-shadow:0 16px 38px #5b43bf25!important;margin-bottom:22px!important}
+.student-hero:after{content:""!important;width:260px;height:260px;border:1px solid #ffffff20;border-radius:50%;right:5%;top:-120px;font-size:0!important;box-shadow:0 0 0 35px #ffffff09,0 0 0 72px #ffffff06}
+.student-hero h1{font-size:clamp(27px,3.2vw,38px)!important;letter-spacing:-1.25px!important}
+.student-hero p{font-size:12px!important}
+.student-course-pill{min-width:190px!important;border-radius:17px!important;background:#ffffff14!important;border-color:#ffffff35!important;padding:17px 19px!important}
+.student-stat-grid{gap:16px!important;margin-bottom:23px!important}
+.student-stat{border:1px solid #e8e7f7!important;border-radius:19px!important;padding:21px!important;background:#fff!important;box-shadow:0 8px 28px #322b7808!important}
+.student-stat-icon{width:42px!important;height:42px!important;border-radius:14px!important;font-size:19px!important;margin-bottom:14px!important}
+.student-stat span{font-size:11px!important;color:#777c9e!important}
+.student-stat strong{font-size:29px!important;color:#25244e!important;margin:7px 0!important}
+.student-stat small{font-size:10px!important;color:#999bb5!important}
+.student-panel{padding:25px!important;border:1px solid #e7e6f5!important;border-radius:20px!important;background:#fff!important;box-shadow:0 8px 28px #322b7807!important;margin-bottom:20px!important}
+.student-panel-head{margin-bottom:20px!important}
+.student-panel-head h2{font-size:18px!important;letter-spacing:-.5px!important;color:#27254f!important}
+.student-panel-head p{font-size:11px!important;color:#898ba8!important}
+.student-label{color:#8a7ae1!important;letter-spacing:1.6px!important}
+.student-chip{background:#f0edff!important;color:#684bd9!important;border-radius:9px!important;padding:8px 11px!important}
+.student-quick-links{gap:11px!important}
+.student-quick-links a{padding:16px!important;border:1px solid #e9e7f6!important;border-radius:13px!important;background:#fcfbff!important;color:#555579!important}
+.student-quick-links a:hover{background:#f4f0ff!important;border-color:#d8ceff!important;color:#6246db!important}
+.student-app .item{border:1px solid #e9e8f6!important;border-radius:15px!important;padding:18px!important;background:#fff!important}
+.student-app .item h3{font-size:14px!important;color:#28264e!important}
+.student-filter-row input,.student-filter-row select{border-color:#e4e2f4!important;border-radius:12px!important;background:#fcfbff!important;padding:12px 14px!important}
+.student-profile-field{border-color:#e9e7f6!important;border-radius:14px!important;background:#fcfbff!important;padding:16px!important}
+.student-profile-field strong{color:#2d2a53!important}
+.student-profile-note{background:#f6f4ff!important;border-radius:12px!important}
+.student-footer{border-top:1px solid #e8e6f4!important;margin-top:16px!important;padding-top:18px!important;color:#9998b3!important}
+@media(max-width:850px){.student-layout{grid-template-columns:1fr!important}.student-sidebar{top:72px!important;padding:9px!important;background:#fff!important}.student-main{padding:20px 14px!important}.student-hero{padding:25px!important;border-radius:20px!important}.student-course-pill{width:auto!important;min-width:0!important}.student-stat{padding:16px!important}.student-stat strong{font-size:24px!important}}
+@media(max-width:480px){.student-top{height:66px!important;padding-inline:12px!important}.student-layout{min-height:calc(100vh - 66px)!important}.student-sidebar{top:66px!important}.student-brand{font-size:16px!important}.student-hero{gap:18px!important}.student-course-pill{width:calc(100% - 40px)!important}.student-panel{padding:17px!important}.student-stat-grid{grid-template-columns:1fr!important}.student-stat{display:grid!important;grid-template-columns:48px 1fr;column-gap:12px;align-items:center}.student-stat-icon{grid-row:1/4;margin:0!important}.student-stat span,.student-stat strong,.student-stat small{grid-column:2}.student-stat strong{margin:2px 0!important}}
+
 </style>
 <script src="config.js?v=automatic-results-1"></script><script type="module" src="app.js?v=live-practice-split-1"></script>
 </head>
