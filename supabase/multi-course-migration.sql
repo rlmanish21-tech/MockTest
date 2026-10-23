@@ -30,3 +30,18 @@ alter table public.attempts add constraint attempts_test_id_fkey
 alter table public.results drop constraint if exists results_test_id_fkey;
 alter table public.results add constraint results_test_id_fkey
   foreign key (test_id) references public.tests(id) on delete cascade;
+
+
+-- Allow the authenticated admin to delete tests and dependent student records.
+drop policy if exists attempts_admin_delete on public.attempts;
+create policy attempts_admin_delete
+  on public.attempts
+  for delete to authenticated
+  using (public.is_admin());
+
+drop policy if exists attempt_answers_admin_all on public.attempt_answers;
+create policy attempt_answers_admin_all
+  on public.attempt_answers
+  for all to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
