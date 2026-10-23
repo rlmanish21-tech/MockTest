@@ -155,7 +155,7 @@ async function studentDash(){
   const heroCourse=$("hero-course"),heroCta=$("hero-cta"),heroLiveLabel=$("hero-live-label");
   if(heroCourse)heroCourse.textContent=nextTest?nextTest.title:course;
   if(heroCta){heroCta.textContent=nextTest?"Start mock test →":"View available tests →";heroCta.dataset.openView="tests"}
-  if(heroLiveLabel)heroLiveLabel.textContent=nextTest?(nextTest.test_type==="live"?"🔴 LIVE TEST":"✨ NEXT TEST"):"YOUR SELECTED COURSE";
+  const heroLiveText=$("hero-live-text");if(heroLiveText)heroLiveText.textContent=nextTest?(nextTest.test_type==="live"?"LIVE TEST":"NEXT TEST"):"YOUR SELECTED COURSE";
   if(overviewTests)overviewTests.innerHTML=allPublishedTests.length?allPublishedTests.slice(0,3).map(overviewCard).join(""):'<div class="student-results-empty">No published tests are available yet.</div>';
   const latestResults=publishedResults.slice().sort((a,b)=>new Date(b.published_at||0)-new Date(a.published_at||0)).slice(0,3);
   if(overviewResults)overviewResults.innerHTML=latestResults.length?latestResults.map(r=>{const t=(tests||[]).find(x=>String(x.id)===String(r.test_id));return '<article class="overview-result-row"><span class="result-ring" style="--result-pct:'+safePercent(r)+'%"><b>'+Math.round(safePercent(r))+'%</b></span><div class="overview-test-info"><strong>'+esc(t?.title||"Test result")+'</strong><small>'+esc(r.score)+'/'+esc(r.max_score)+' correct · Rank '+esc(r.rank??"—")+'</small></div></article>'}).join(""):'<div class="student-results-empty">No published results yet. Your results will appear here after release.</div>';
