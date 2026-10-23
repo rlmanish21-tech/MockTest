@@ -108,7 +108,7 @@ async function studentDash(){
    if(error||attemptError){const errMsg=error?.message||attemptError?.message||"Unable to load tests.";const html='<div class="item">'+esc(errMsg)+'</div>';if(liveHost)liveHost.innerHTML=html;if(practiceHost)practiceHost.innerHTML=html;return}
    const now=Date.now();
    const liveTests=(tests||[]).filter(t=>t.test_type==="live"&&(!t.ends_at||now<new Date(t.ends_at).getTime()+LIVE_PRACTICE_GRACE_MS));
-   const practiceTests=(tests||[]).filter(t=>t.test_type!=="live"||(t.ends_at&&now>=new Date(t.ends_at).getTime()+twoHours));
+   const practiceTests=(tests||[]).filter(t=>t.test_type!=="live"||(t.ends_at&&now>=new Date(t.ends_at).getTime()+LIVE_PRACTICE_GRACE_MS));
    const card=t=>{const a=latestByTest.get(String(t.id)),availability=statusFor(t),done=a&&a.status!=="in_progress",isLive=t.test_type==="live",locked=availability.state==="upcoming"||availability.state==="ended";let action="";
     if(a?.status==="in_progress")action='<button class="btn primary" data-start-attempt="'+t.id+'" data-resume="'+a.id+'">Resume attempt</button>';
     else action='<button class="btn primary" data-start-attempt="'+t.id+'" '+(locked?'disabled title="This live test is not open."':'')+'">'+(done?"Reattempt":"Attempt test")+'</button>';
