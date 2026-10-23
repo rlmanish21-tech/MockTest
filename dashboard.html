@@ -126,6 +126,13 @@ body.student-app{background:#f3f4ff!important;color:#20284b}
 @media(max-width:480px){.dashboard-stats .student-stat strong{font-size:24px!important}.student-hero h1{font-size:25px!important}.student-hero-copy>p:not(.eyebrow){font-size:12px!important}}
 
 .live-test-dot{display:inline-block;vertical-align:middle;width:8px;height:8px;margin-left:5px;border-radius:50%;background:#19c879;box-shadow:0 0 0 3px #19c87920;animation:live-green-pulse 1.35s ease-in-out infinite}.overview-test-info small:has(+ .live-test-dot){color:#159b61;font-weight:800}
+
+/* Animated live-status indicator */
+.live-status-dot{display:inline-block;width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:#20e6a0;box-shadow:0 0 0 0 #20e6a066;animation:live-dot-pulse 1.5s ease-out infinite;vertical-align:middle}
+.live-status-label{display:inline-flex;align-items:center;gap:7px}
+@keyframes live-dot-pulse{0%{box-shadow:0 0 0 0 #20e6a080;opacity:1}70%{box-shadow:0 0 0 7px #20e6a000;opacity:.9}100%{box-shadow:0 0 0 0 #20e6a000;opacity:1}}
+@media(prefers-reduced-motion:reduce){.live-status-dot{animation:none}}
+
 </style>
 <script src="config.js?v=automatic-results-1"></script><script type="module" src="app.js?v=dashboard-greeting-live-dot-4"></script>
 </head>
@@ -144,7 +151,7 @@ body.student-app{background:#f3f4ff!important;color:#20284b}
 <main class="student-main">
 <div id="message" class="status"></div>
 <section class="student-view active" id="view-overview" data-view-panel="overview">
-<section id="student-overview" class="student-hero"><div class="student-hero-copy"><div class="student-hero-badges"><span id="hero-stream-badge">🎓 Student</span><span id="hero-course-badge">📚 Course</span></div><p class="eyebrow">YOUR LEARNING SPACE</p><h1 id="welcome">Good day, Student 👋</h1><p>Pick up where you left off. Open a test, review your results, or practise at your own pace.</p></div><div class="student-course-pill"><small id="hero-live-label">YOUR NEXT STEP</small><strong id="hero-course">Loading course…</strong><a href="#tests" id="hero-cta" data-open-view="tests">View available tests →</a></div></section>
+<section id="student-overview" class="student-hero"><div class="student-hero-copy"><div class="student-hero-badges"><span id="hero-stream-badge">🎓 Student</span><span id="hero-course-badge">📚 Course</span></div><p class="eyebrow">YOUR LEARNING SPACE</p><h1 id="welcome">Good day, Student 👋</h1><p>Pick up where you left off. Open a test, review your results, or practise at your own pace.</p></div><div class="student-course-pill"><small id="hero-live-label" class="live-status-label"><span class="live-status-dot" aria-hidden="true"></span><span id="hero-live-text">YOUR NEXT STEP</span></small><strong id="hero-course">Loading course…</strong><a href="#tests" id="hero-cta" data-open-view="tests">View available tests →</a></div></section>
 <section class="student-stat-grid dashboard-stats"><article class="student-stat"><div class="student-stat-icon purple">📝</div><span>Mock tests available</span><strong id="stat-tests">—</strong><small>Published tests for you</small></article><article class="student-stat"><div class="student-stat-icon green">✅</div><span>Results published</span><strong id="stat-results">—</strong><small>Scores released to you</small></article><article class="student-stat"><div class="student-stat-icon blue">🎯</div><span>Average score</span><strong id="stat-average">—</strong><small>Across published results</small></article><article class="student-stat"><div class="student-stat-icon orange">🔥</div><span>Live now</span><strong id="stat-live">—</strong><small>Tests currently open</small></article></section>
 <div class="student-grid dashboard-overview-grid"><section class="student-panel"><div class="student-panel-head"><div><h2>Mock tests for you</h2><p>Available tests based on your course and current schedule.</p></div><a href="#tests" data-open-view="tests" class="student-panel-link">View all</a></div><div id="overview-tests"><div class="student-results-empty">Loading available tests…</div></div></section>
 <section class="student-panel"><div class="student-panel-head"><div><h2>Recent results</h2><p>Your latest published scores.</p></div><a href="#results" data-open-view="results" class="student-panel-link">All results</a></div><div id="overview-results"><div class="student-results-empty">Loading your results…</div></div><div id="results-chart" class="results-mini-chart" aria-label="Recent result percentages"></div></section></div>
