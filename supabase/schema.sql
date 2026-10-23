@@ -183,3 +183,18 @@ drop trigger if exists on_auth_user_created_student_profile on auth.users;
 create trigger on_auth_user_created_student_profile
 after insert on auth.users
 for each row execute function public.handle_new_student_profile();
+
+
+-- Allow the authenticated admin to delete tests and dependent student records.
+drop policy if exists attempts_admin_delete on public.attempts;
+create policy attempts_admin_delete
+  on public.attempts
+  for delete to authenticated
+  using (public.is_admin());
+
+drop policy if exists attempt_answers_admin_all on public.attempt_answers;
+create policy attempt_answers_admin_all
+  on public.attempt_answers
+  for all to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
