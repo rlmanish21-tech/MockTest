@@ -166,6 +166,12 @@ body.student-app{background:#f3f4ff!important;color:#20284b}
 @media(max-width:760px){.practice-hero{align-items:flex-start;flex-direction:column;padding:22px 20px;gap:18px}.practice-hero-stats{width:100%;grid-template-columns:repeat(3,minmax(0,1fr))}.practice-hero-stats>div{min-width:0;padding:11px}.practice-hero-stats strong{font-size:19px}.practice-toolbar{align-items:stretch;flex-direction:column}.practice-search{width:auto;min-width:0}.practice-guidance-grid{grid-template-columns:1fr}}
 @media(max-width:480px){.practice-hero{border-radius:16px;padding:19px 16px}.practice-hero p{font-size:10px}.practice-hero-stats{gap:6px}.practice-hero-stats>div{padding:10px 7px}.practice-hero-stats span{font-size:8px}.practice-tabs{gap:5px}.practice-tab{padding:8px 10px;font-size:9px}#practice-tests .student-test-card{padding:14px!important;gap:8px}#practice-tests .student-test-actions{justify-content:stretch}#practice-tests .student-test-actions .btn{flex:1;padding:10px 8px!important}.practice-guidance-card{padding:15px}}
 
+
+/* Keep practice-test cards compact instead of stretching across the entire content area. */
+#practice-tests{max-width:900px;width:100%;margin-left:auto;margin-right:auto}
+#practice-tests .student-test-card{max-width:900px}
+@media(max-width:760px){#practice-tests{max-width:100%}#practice-tests .student-test-card{max-width:100%}}
+
 </style>
 <script src="config.js?v=automatic-results-1"></script><script type="module" src="app.js?v=practice-design-1"></script>
 </head>
