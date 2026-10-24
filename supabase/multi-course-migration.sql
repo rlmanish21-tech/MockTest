@@ -45,3 +45,21 @@ create policy attempt_answers_admin_all
   for all to authenticated
   using (public.is_admin())
   with check (public.is_admin());
+
+-- Admin-only delete permissions required by the Admin Dashboard's delete-test workflow.
+-- Re-running this block is safe. Keep RLS enabled; do not use a service-role key in the browser.
+drop policy if exists tests_admin_delete on public.tests;
+create policy tests_admin_delete on public.tests
+  for delete to authenticated using (public.is_admin());
+
+drop policy if exists results_admin_delete on public.results;
+create policy results_admin_delete on public.results
+  for delete to authenticated using (public.is_admin());
+
+drop policy if exists questions_admin_delete on public.questions;
+create policy questions_admin_delete on public.questions
+  for delete to authenticated using (public.is_admin());
+
+drop policy if exists answer_keys_admin_delete on public.answer_keys;
+create policy answer_keys_admin_delete on public.answer_keys
+  for delete to authenticated using (public.is_admin());
