@@ -176,7 +176,79 @@ async function studentDash(){
 }
 async function logout(id,redirect){const b=$(id);if(b)b.addEventListener("click",async()=>{if(sb)await sb.auth.signOut();location.href=redirect})}
 async function adminLogin(){const f=$("admin-login-form");if(!f)return;f.addEventListener("submit",async e=>{e.preventDefault();if(!need())return;const {data,error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error){message("Owner login failed: "+error.message,true);return}const {data:isAdmin,error:roleError}=await sb.rpc("is_admin");if(roleError){await sb.auth.signOut();message("Could not verify owner access: "+roleError.message,true);return}if(isAdmin!==true){await sb.auth.signOut();message("Signed in, but this account is not authorised for owner access. Check the admin role for this exact Auth user.",true);return}location.href="admin-dashboard.html"})}
-async function adminDash(){if(!$("admin-tests"))return;if(!need())return;const {data:{user},error:userError}=await sb.auth.getUser();if(userError||!user){location.href="admin.html";return}const {data:isAdmin,error:roleError}=await sb.rpc("is_admin");if(roleError||isAdmin!==true){message("Owner access verification failed. Please sign in again.",true);await sb.auth.signOut();location.href="admin.html";return}await loadCourses();await loadTests();await loadQuestions();await loadSchedules();await loadResults();await loadOwnerOverview();await loadStudents();$("export-students").addEventListener("click",exportStudentsCsv);$("course-form").addEventListener("submit",async e=>{e.preventDefault();const {error}=await sb.from("courses").insert({name:$("course-name").value.trim(),stream:$("course-stream").value,is_active:true});if(error)message(error.message,true);else{message("Course added.");$("course-form").reset();await loadCourses()}});document.addEventListener("click",e=>{const picker=$("course-picker");if(picker&&!picker.contains(e.target)){$("course-picker-menu").hidden=true;$("course-picker-trigger").setAttribute("aria-expanded","false")}});$("refresh-tests")?.addEventListener("click",async()=>{const btn=$("refresh-tests");btn.disabled=true;btn.textContent="Refreshing…";try{await loadTests();await loadOwnerOverview();message("Tests refreshed.");}catch(err){message("Refresh failed: "+(err?.message||err),true)}finally{btn.disabled=false;btn.textContent="↻ Refresh"}});$("upload-extracted-questions")?.addEventListener("click",async()=>{const b=$("upload-extracted-questions");b.disabled=true;try{const ok=await saveImportedQuestions();if(ok===true){$("question-extraction-title").textContent="All questions uploaded successfully.";$("question-extraction-detail").textContent="Questions and correct answers are saved. You can now publish the test.";b.textContent="Questions uploaded ✓";$("publish-created-test").disabled=false;}}catch(err){message("Could not upload questions: "+(err?.message||err),true)}finally{b.disabled=false}});
+
+let pendingCourseImportRows=[];
+function normalizeCourseStream(value){
+ const raw=String(value||"").trim().toLowerCase();
+ const map={commerce:"Commerce",science:"Science",arts:"Arts"};
+ return map[raw]||"";
+}
+function setCourseImportStatus(text,type=""){
+ const el=$("course-import-status");if(!el)return;
+ el.textContent=text;el.className="course-import-status"+(type?" "+type:"");
+}
+function resetCourseImportPreview(){
+ pendingCourseImportRows=[];
+ const host=$("course-import-preview"),body=$("course-import-preview-body"),upload=$("course-import-upload-btn");
+ if(host)host.hidden=true;if(body)body.innerHTML="";if(upload)upload.disabled=true;
+}
+async function previewCourseImport(){
+ resetCourseImportPreview();
+ const file=$("course-import-file")?.files?.[0];
+ if(!file){setCourseImportStatus("Please choose an Excel or CSV file first.","error");return}
+ if(!window.XLSX){setCourseImportStatus("Excel reader did not load. Refresh the page and try again.","error");return}
+ try{
+  const buffer=await file.arrayBuffer();
+  const workbook=XLSX.read(buffer,{type:"array"});
+  const sheet=workbook.Sheets[workbook.SheetNames[0]];
+  const raw=XLSX.utils.sheet_to_json(sheet,{header:1,defval:"",raw:false});
+  if(!raw.length){setCourseImportStatus("The selected file is empty.","error");return}
+  const first=(raw[0]||[]).slice(0,2).map(v=>String(v||"").trim().toLowerCase());
+  const hasHeader=(first[0]==="course"||first[0]==="course name"||first[0]==="course / exam"||first[0]==="course/exam")&&(first[1]==="stream"||first[1]==="faculty");
+  const start=hasHeader?1:0;
+  const seen=new Set();
+  const rows=[];
+  for(let i=start;i<raw.length;i++){
+   const row=raw[i]||[],name=String(row[0]||"").trim(),stream=normalizeCourseStream(row[1]);
+   if(!name&&!String(row[1]||"").trim())continue;
+   const key=name.toLocaleLowerCase()+"|"+stream.toLowerCase();
+   let error="";
+   if(!name)error="Course name is required";
+   else if(!stream)error="Stream must be Commerce, Science or Arts";
+   else if(seen.has(key))error="Duplicate row in this file";
+   if(name&&stream)seen.add(key);
+   rows.push({excelRow:i+1,name,stream,valid:!error,error});
+  }
+  if(!rows.length){setCourseImportStatus("No course rows found. Column A should contain course names and column B streams.","error");return}
+  pendingCourseImportRows=rows;
+  $("course-import-preview-body").innerHTML=rows.map(r=>'<tr><td>'+r.excelRow+'</td><td>'+esc(r.name||"—")+'</td><td>'+esc(r.stream||String((raw[r.excelRow-1]||[])[1]||"—"))+'</td><td class="'+(r.valid?"course-import-preview-valid":"course-import-preview-invalid")+'">'+esc(r.valid?"Ready":r.error)+'</td></tr>').join("");
+  $("course-import-preview").hidden=false;
+  const valid=rows.filter(r=>r.valid).length,invalid=rows.length-valid;
+  $("course-import-upload-btn").disabled=valid===0;
+  setCourseImportStatus(rows.length+" course row(s) found · "+valid+" ready to upload · "+invalid+" invalid row(s). "+(invalid?"Fix invalid rows in Excel and preview again. Valid rows can still be uploaded.":"Review the preview, then upload."),invalid?"error":"success");
+ }catch(err){resetCourseImportPreview();setCourseImportStatus("Could not read the file: "+(err?.message||err),"error")}
+}
+async function uploadCourseImport(){
+ const rows=pendingCourseImportRows.filter(r=>r.valid);
+ if(!rows.length){setCourseImportStatus("No valid rows to upload. Preview a valid file first.","error");return}
+ const button=$("course-import-upload-btn");button.disabled=true;button.textContent="Uploading…";
+ try{
+  let inserted=0,failed=[];
+  for(let i=0;i<rows.length;i+=100){
+   const batch=rows.slice(i,i+100).map(r=>({name:r.name,stream:r.stream,is_active:true}));
+   const {data,error}=await sb.from("courses").upsert(batch,{onConflict:"name,stream",ignoreDuplicates:true}).select("id");
+   if(error)throw error;
+   inserted+=(data||[]).length;
+  }
+  const skipped=rows.length-inserted;
+  await loadCourses();await loadOwnerOverview();
+  setCourseImportStatus("Upload complete: "+inserted+" new course(s) added; "+skipped+" duplicate course + stream combination(s) skipped. "+pendingCourseImportRows.filter(r=>!r.valid).length+" invalid row(s) were not uploaded.","success");
+  resetCourseImportPreview();
+ }catch(err){setCourseImportStatus("Upload failed: "+(err?.message||err)+". No success is assumed; check the course list before retrying.","error")}
+ finally{button.textContent="Upload courses";button.disabled=!pendingCourseImportRows.some(r=>r.valid)}
+}
+
+async function adminDash(){if(!$("admin-tests"))return;if(!need())return;const {data:{user},error:userError}=await sb.auth.getUser();if(userError||!user){location.href="admin.html";return}const {data:isAdmin,error:roleError}=await sb.rpc("is_admin");if(roleError||isAdmin!==true){message("Owner access verification failed. Please sign in again.",true);await sb.auth.signOut();location.href="admin.html";return}await loadCourses();$("course-import-preview-btn")?.addEventListener("click",previewCourseImport);$("course-import-file")?.addEventListener("change",()=>{resetCourseImportPreview();setCourseImportStatus("File selected. Click Preview file to validate the rows.")});$("course-import-upload-btn")?.addEventListener("click",uploadCourseImport);await loadTests();await loadQuestions();await loadSchedules();await loadResults();await loadOwnerOverview();await loadStudents();$("export-students").addEventListener("click",exportStudentsCsv);$("course-form").addEventListener("submit",async e=>{e.preventDefault();const {error}=await sb.from("courses").insert({name:$("course-name").value.trim(),stream:$("course-stream").value,is_active:true});if(error)message(error.message,true);else{message("Course added.");$("course-form").reset();await loadCourses()}});document.addEventListener("click",e=>{const picker=$("course-picker");if(picker&&!picker.contains(e.target)){$("course-picker-menu").hidden=true;$("course-picker-trigger").setAttribute("aria-expanded","false")}});$("refresh-tests")?.addEventListener("click",async()=>{const btn=$("refresh-tests");btn.disabled=true;btn.textContent="Refreshing…";try{await loadTests();await loadOwnerOverview();message("Tests refreshed.");}catch(err){message("Refresh failed: "+(err?.message||err),true)}finally{btn.disabled=false;btn.textContent="↻ Refresh"}});$("upload-extracted-questions")?.addEventListener("click",async()=>{const b=$("upload-extracted-questions");b.disabled=true;try{const ok=await saveImportedQuestions();if(ok===true){$("question-extraction-title").textContent="All questions uploaded successfully.";$("question-extraction-detail").textContent="Questions and correct answers are saved. You can now publish the test.";b.textContent="Questions uploaded ✓";$("publish-created-test").disabled=false;}}catch(err){message("Could not upload questions: "+(err?.message||err),true)}finally{b.disabled=false}});
 $("publish-created-test")?.addEventListener("click",async()=>{if(!pendingCreatedTestId){message("Create a test and extract its questions first.",true);return}const b=$("publish-created-test");b.disabled=true;try{if(!extractedQuestionsSaved){const ok=await saveImportedQuestions();if(ok!==true){message("Questions could not be uploaded. Fix the error before publishing.",true);return}extractedQuestionsSaved=true}const {data:test,error:te}=await sb.from("tests").select("id,question_count").eq("id",pendingCreatedTestId).single();if(te||!test){message("Could not verify test: "+(te?.message||"Test not found"),true);return}const {data:qs,error:qe}=await sb.from("questions").select("id").eq("test_id",pendingCreatedTestId);if(qe){message(qe.message,true);return}if((qs||[]).length!==test.question_count){message("Cannot publish: expected "+test.question_count+" questions, but "+(qs||[]).length+" are saved.",true);return}const {data:keys,error:ke}=await sb.from("answer_keys").select("question_id").in("question_id",(qs||[]).map(q=>q.id));if(ke){message(ke.message,true);return}if((keys||[]).length!==(qs||[]).length){message("Cannot publish: some questions are missing correct answers.",true);return}const {error:pe}=await sb.from("tests").update({status:"published"}).eq("id",pendingCreatedTestId);if(pe){message("Could not publish test: "+pe.message,true);return}message("Test published successfully with "+(qs||[]).length+" questions and answer keys.");$("question-extraction-actions").hidden=true;pendingCreatedTestId=null;pendingImportedQuestions=null;extractedQuestionsSaved=false;await loadTests();await loadOwnerOverview()}catch(err){message("Publishing failed: "+(err?.message||err),true)}finally{b.disabled=false}});
 const testTypeSelect=$("test-type"),testScheduleFields=$("test-schedule-fields");const syncTestCreationSchedule=()=>{const live=testTypeSelect.value==="live";testScheduleFields.hidden=!live;$("test-start").required=live;$("test-end").required=live};testTypeSelect.addEventListener("change",syncTestCreationSchedule);syncTestCreationSchedule();$("test-form").noValidate=true;$("test-form").addEventListener("submit",async e=>{e.preventDefault();const submitButton=$("test-form").querySelector('button[type="submit"]');if(submitButton?.disabled)return;const originalButtonText=submitButton?.textContent||"Create draft test →";if(submitButton){submitButton.disabled=true;submitButton.textContent="Creating test…";submitButton.setAttribute("aria-live","polite")}try{const isLive=$("test-type").value==="live";if(isLive){const start=$("test-start").value,end=$("test-end").value;if(!start||!end){message("For a live mock test, enter both the start and end date/time.",true);return}if(new Date(end)<=new Date(start)){message("The live test end time must be later than its start time.",true);return}}const courseIds=[...$("test-course").selectedOptions].map(o=>Number(o.value));if(!courseIds.length){message("Select at least one course.",true);return}const payload={title:$("test-title").value.trim(),course_id:courseIds[0],test_type:$("test-type").value,duration_minutes:Number($("test-duration").value),question_count:Number($("test-count").value),starts_at:isLive?new Date($("test-start").value).toISOString():null,ends_at:isLive?new Date($("test-end").value).toISOString():null,created_by:user.id,status:"draft"};const {data:created,error}=await sb.from("tests").insert(payload).select("id").single();if(error){message(error.message,true);return}const {error:courseError}=await sb.from("test_courses").insert(courseIds.map(course_id=>({test_id:created.id,course_id})));if(courseError){message("Test created, but course assignments failed. Run the multi-course migration in Supabase. "+courseError.message,true);await loadTests();return}message("Draft test created successfully. Upload the question paper below.");$("test-form").reset();await loadTests();await loadOwnerOverview();if(submitButton){submitButton.textContent="Draft test created ✓";submitButton.classList.remove("primary");submitButton.classList.add("success");setTimeout(()=>{submitButton.textContent=originalButtonText;submitButton.classList.remove("success");submitButton.classList.add("primary")},3000)}}catch(err){message("Could not create draft test: "+(err?.message||String(err)),true)}finally{if(submitButton)submitButton.disabled=false}});$("admin-logout").addEventListener("click",async()=>{await sb.auth.signOut();location.href="admin.html"})}
 let ownerStudentRows=[];
