@@ -133,6 +133,25 @@ body.student-app{background:#f3f4ff!important;color:#20284b}
 @keyframes live-dot-pulse{0%{box-shadow:0 0 0 0 #20e6a080;opacity:1}70%{box-shadow:0 0 0 7px #20e6a000;opacity:.9}100%{box-shadow:0 0 0 0 #20e6a000;opacity:1}}
 @media(prefers-reduced-motion:reduce){.live-status-dot{animation:none}}
 
+
+/* Profile page redesign based on the supplied reference; existing data IDs and edit flow are preserved. */
+.profile-breadcrumb{display:flex;gap:10px;align-items:center;color:#77809d;font-size:12px;margin:2px 0 24px}.profile-breadcrumb b{color:#c2c5d8}.profile-breadcrumb strong{color:#202744;font-weight:700}
+.profile-hero{overflow:hidden;border:1px solid #e7e8f5;border-radius:20px;background:#fff;margin-bottom:23px;box-shadow:0 8px 26px #28245c08}
+.profile-hero-cover{height:96px;background:linear-gradient(110deg,#302878,#4335a7 58%,#6245d5)}
+.profile-hero-main{display:flex;align-items:center;gap:20px;padding:0 30px 24px;min-height:80px;position:relative}
+.profile-avatar{width:92px;height:92px;flex:0 0 92px;border-radius:50%;display:grid;place-items:center;margin-top:-46px;border:5px solid #fff;background:linear-gradient(145deg,#6452ed,#4737c9);color:#fff;font-size:35px;font-weight:800;box-shadow:0 5px 18px #4334b322}
+.profile-identity{min-width:0;flex:1;padding-top:8px}.profile-eyebrow{font-size:9px;letter-spacing:1.8px;font-weight:850;color:#8188a7}.profile-identity h1{font-size:27px;letter-spacing:-.7px;margin:7px 0 5px;color:#1d2442}.profile-identity p{font-size:12px;color:#69738f;margin:0;line-height:1.6;overflow-wrap:anywhere}
+.profile-completion{display:flex;align-items:center;gap:12px;margin-left:auto}.profile-ring{width:60px;height:60px;border:6px solid #e6e2ff;border-top-color:#5a45de;border-right-color:#5a45de;border-bottom-color:#5a45de;border-radius:50%;display:grid;place-items:center;color:#27284d;flex:0 0 auto}.profile-ring strong{font-size:13px}.profile-completion>div:last-child{display:flex;flex-direction:column;gap:5px}.profile-completion>div:last-child strong{font-size:12px;color:#252b49}.profile-completion>div:last-child span{font-size:10px;color:#7f87a1;white-space:nowrap}
+.profile-edit-hero{white-space:nowrap!important;padding:12px 16px!important;font-size:12px!important}
+.profile-hero-foot{border-top:1px solid #e9ebf5;background:#fafbff;padding:13px 30px;color:#69738f;font-size:12px}
+.profile-columns{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(260px,.75fr);gap:22px;align-items:start}.profile-primary-column,.profile-secondary-column{min-width:0}.profile-info-panel{padding:27px 30px!important;border-radius:17px!important;margin-bottom:22px!important}.profile-info-panel .student-panel-head{margin-bottom:18px!important}.profile-info-panel .student-panel-head h2,.profile-side-title h2{font-size:17px!important;color:#202642!important}
+.profile-detail-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:0 32px!important}.profile-detail-grid .student-profile-field{border:0!important;border-radius:0!important;border-bottom:1px solid #edf0f7!important;background:transparent!important;padding:14px 0 17px!important}.profile-detail-grid .student-profile-field:nth-last-child(-n+2){border-bottom:0!important}.profile-detail-grid .student-profile-field span{font-size:11px!important;color:#697493!important}.profile-detail-grid .student-profile-field strong{font-size:14px!important;color:#1e2643!important}
+.profile-side-card{padding:25px!important;border-radius:17px!important;margin-bottom:22px!important}.profile-side-title{display:flex;align-items:center;gap:11px;margin-bottom:20px}.profile-side-title>span{font-size:19px;color:#5c47e1}.profile-side-title h2{margin:0}.profile-login-label{display:flex;align-items:center;gap:9px;font-size:11px;color:#697493;margin-bottom:8px}.profile-login-label em{font-style:normal;color:#9b5b13;background:#fff2cd;padding:4px 7px;border-radius:6px;font-size:9px}.profile-login-value{display:block;font-size:15px;color:#1f2745;padding-bottom:17px;border-bottom:1px solid #edf0f7;overflow-wrap:anywhere}.profile-profile-note{font-size:11px;line-height:1.7;color:#65708e;background:#f7f8fc;border-radius:11px;padding:13px;margin:16px 0 0}.profile-communication-row{display:flex;justify-content:space-between;align-items:center;gap:12px}.profile-communication-row>div{display:flex;flex-direction:column;gap:5px;min-width:0}.profile-communication-row strong{font-size:12px;color:#222a48}.profile-communication-row span{font-size:10px;color:#6e7896}.profile-status-pill{padding:6px 9px;border-radius:20px;background:#eeedff;color:#5944d5!important;font-weight:800;white-space:nowrap}.profile-communication-help{font-size:10px;line-height:1.6;color:#8189a3;margin:15px 0 0}.profile-tip-card{border:1px solid #e5e8f4;border-radius:14px;padding:17px;background:linear-gradient(140deg,#fff,#f7f7ff)}.profile-tip-card strong{font-size:12px;color:#252c49}.profile-tip-card p{font-size:11px;line-height:1.7;color:#687391;margin:7px 0 0}
+.profile-edit-panel[hidden]{display:none!important}.profile-edit-panel{margin-top:0}.profile-edit-panel .student-profile-form-grid{gap:16px}.profile-edit-panel .student-profile-note{margin-bottom:0}
+@media(max-width:1000px){.profile-columns{grid-template-columns:minmax(0,1fr) minmax(235px,.75fr);gap:14px}.profile-hero-main{gap:14px;padding-inline:22px}.profile-completion{gap:8px}.profile-ring{width:52px;height:52px}.profile-info-panel,.profile-side-card{padding:21px!important}}
+@media(max-width:760px){.profile-hero-main{display:grid;grid-template-columns:72px minmax(0,1fr);gap:12px;padding:0 18px 20px}.profile-avatar{width:72px;height:72px;flex-basis:72px;margin-top:-36px;font-size:27px}.profile-identity{padding-top:4px}.profile-identity h1{font-size:22px}.profile-completion{grid-column:1/-1;margin:0;justify-self:start}.profile-edit-hero{grid-column:1/-1;width:100%}.profile-hero-foot{padding:12px 18px}.profile-columns{grid-template-columns:1fr}.profile-secondary-column{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.profile-side-card{margin-bottom:0!important}.profile-tip-card{grid-column:1/-1}.profile-info-panel{padding:19px!important}.profile-detail-grid{gap:0 20px!important}}
+@media(max-width:480px){.profile-breadcrumb{margin-bottom:17px}.profile-hero-cover{height:76px}.profile-hero-main{grid-template-columns:58px minmax(0,1fr);padding-inline:14px;gap:10px}.profile-avatar{width:58px;height:58px;flex-basis:58px;margin-top:-29px;font-size:23px;border-width:4px}.profile-identity h1{font-size:20px}.profile-identity p{font-size:11px}.profile-completion{gap:9px}.profile-ring{width:46px;height:46px;border-width:5px}.profile-completion>div:last-child strong{font-size:11px}.profile-completion>div:last-child span{font-size:9px}.profile-hero-foot{font-size:11px}.profile-detail-grid{grid-template-columns:1fr!important}.profile-detail-grid .student-profile-field:nth-last-child(-n+2){border-bottom:1px solid #edf0f7!important}.profile-detail-grid .student-profile-field:last-child{border-bottom:0!important}.profile-secondary-column{grid-template-columns:1fr}.profile-side-card{padding:19px!important}.profile-edit-panel .student-profile-form-grid{grid-template-columns:1fr}.profile-edit-panel .student-profile-form-grid .student-consent{grid-column:auto}}
+
 </style>
 <script src="config.js?v=automatic-results-1"></script><script type="module" src="app.js?v=dashboard-greeting-live-dot-4"></script>
 </head>
@@ -168,36 +187,63 @@ body.student-app{background:#f3f4ff!important;color:#20284b}
 <section id="results-section" class="student-panel"><div class="student-panel-head"><div><div class="student-label">PERFORMANCE</div><h2>My published results</h2><p>Your released scores and ranks appear here.</p></div><span class="student-chip">MY RESULTS</span></div><div id="results"><div class="student-results-empty">Loading your published results…</div></div></section>
 </section>
 <section class="student-view" id="view-profile" data-view-panel="profile">
-<section id="profile-section" class="student-panel">
-<div class="student-panel-head"><div><div class="student-label">ACCOUNT DETAILS</div><h2>My profile</h2><p>Review your registration details and keep your information up to date.</p></div><button class="btn primary" type="button" id="edit-profile-btn">Edit profile</button></div>
-<div id="profile-view" class="student-profile-grid">
-<div class="student-profile-field"><span>Full name</span><strong id="profile-name">Loading…</strong></div>
-<div class="student-profile-field"><span>Mobile number <em>Locked</em></span><strong id="profile-mobile">—</strong></div>
-<div class="student-profile-field"><span>Date of birth <em>Locked</em></span><strong id="profile-dob">—</strong></div>
-<div class="student-profile-field"><span>Stream</span><strong id="profile-stream">—</strong></div>
-<div class="student-profile-field"><span>Course / entrance exam</span><strong id="profile-course">—</strong></div>
-<div class="student-profile-field"><span>Highest qualification</span><strong id="profile-qualification">—</strong></div>
-<div class="student-profile-field"><span>City</span><strong id="profile-city">—</strong></div>
-<div class="student-profile-field"><span>State</span><strong id="profile-state">—</strong></div>
-<div class="student-profile-field"><span>LU Update communications</span><strong id="profile-marketing">—</strong></div>
-</div>
-<div class="student-profile-note">Mobile number and date of birth are used for account login and cannot be changed from this page.</div>
-<form id="profile-edit-form" hidden>
-<div class="student-profile-form-grid">
-<label>Full name<input id="edit-full-name" maxlength="120" required></label>
-<label>Mobile number (cannot edit)<input id="edit-mobile" disabled></label>
-<label>Date of birth (cannot edit)<input id="edit-dob" type="date" disabled></label>
-<label>Stream<select id="edit-stream" required><option value="Commerce">Commerce</option><option value="Science">Science</option><option value="Arts">Arts</option></select></label>
-<label>Course / entrance exam<input id="edit-course" maxlength="150" required></label>
-<label>Highest qualification<input id="edit-qualification" maxlength="100" required></label>
-<label>City<input id="edit-city" maxlength="100" required></label>
-<label>State<input id="edit-state" maxlength="100" required></label>
-<label class="student-consent"><input id="edit-marketing" type="checkbox"> I agree to receive LU Update announcements and learning updates.</label>
-</div>
-<div class="student-profile-form-actions"><button class="btn primary" type="submit" id="save-profile-btn">Save changes</button><button class="btn secondary" type="button" id="cancel-profile-btn">Cancel</button></div>
-<p class="student-profile-note">When you save, your updated details replace the previous details in your profile.</p>
-</form>
+<div class="profile-breadcrumb"><span>Dashboard</span><b>/</b><strong>My profile</strong></div>
+<section class="profile-hero">
+ <div class="profile-hero-cover"></div>
+ <div class="profile-hero-main">
+  <div class="profile-avatar" id="profile-avatar">S</div>
+  <div class="profile-identity"><span class="profile-eyebrow">ACCOUNT DETAILS</span><h1 id="profile-banner-name">My profile</h1><p id="profile-line">Your course · Stream · City</p></div>
+  <div class="profile-completion"><div class="profile-ring"><strong id="profile-completion-percent">—</strong></div><div><strong>Profile complete</strong><span id="profile-completion-count">Checking your details</span></div></div>
+  <button class="btn primary profile-edit-hero" type="button" id="edit-profile-btn">✎ &nbsp; Edit profile</button>
+ </div>
+ <div class="profile-hero-foot">Review your registration details and keep your information up to date.</div>
 </section>
+<div class="profile-columns">
+ <div class="profile-primary-column">
+  <section class="student-panel profile-info-panel"><div class="student-panel-head"><div><h2>Personal information</h2></div></div>
+   <div id="profile-view" class="student-profile-grid profile-detail-grid">
+    <div class="student-profile-field"><span>Full name</span><strong id="profile-name">Loading…</strong></div>
+    <div class="student-profile-field"><span>Date of birth <em>🔒 Locked</em></span><strong id="profile-dob">—</strong></div>
+    <div class="student-profile-field"><span>City</span><strong id="profile-city">—</strong></div>
+    <div class="student-profile-field"><span>State</span><strong id="profile-state">—</strong></div>
+   </div>
+  </section>
+  <section class="student-panel profile-info-panel"><div class="student-panel-head"><div><h2>Academic details</h2></div></div>
+   <div class="student-profile-grid profile-detail-grid">
+    <div class="student-profile-field"><span>Course / entrance exam</span><strong id="profile-course">—</strong></div>
+    <div class="student-profile-field"><span>Stream</span><strong id="profile-stream">—</strong></div>
+    <div class="student-profile-field"><span>Highest qualification</span><strong id="profile-qualification">—</strong></div>
+   </div>
+  </section>
+  <form id="profile-edit-form" hidden class="student-panel profile-edit-panel">
+   <div class="student-panel-head"><div><h2>Edit profile details</h2><p>Update your personal and academic information below.</p></div></div>
+   <div class="student-profile-form-grid">
+    <label>Full name<input id="edit-full-name" maxlength="120" required></label>
+    <label>Mobile number (cannot edit)<input id="edit-mobile" disabled></label>
+    <label>Date of birth (cannot edit)<input id="edit-dob" type="date" disabled></label>
+    <label>Stream<select id="edit-stream" required><option value="Commerce">Commerce</option><option value="Science">Science</option><option value="Arts">Arts</option></select></label>
+    <label>Course / entrance exam<input id="edit-course" maxlength="150" required></label>
+    <label>Highest qualification<input id="edit-qualification" maxlength="100" required></label>
+    <label>City<input id="edit-city" maxlength="100" required></label>
+    <label>State<input id="edit-state" maxlength="100" required></label>
+    <label class="student-consent"><input id="edit-marketing" type="checkbox"> I agree to receive LU Update announcements and learning updates.</label>
+   </div>
+   <div class="student-profile-form-actions"><button class="btn primary" type="submit" id="save-profile-btn">Save changes</button><button class="btn secondary" type="button" id="cancel-profile-btn">Cancel</button></div>
+   <p class="student-profile-note">Mobile number and date of birth cannot be changed here because they are linked to your login.</p>
+  </form>
+ </div>
+ <aside class="profile-secondary-column">
+  <section class="student-panel profile-side-card"><div class="profile-side-title"><span>♙</span><h2>Login details</h2></div>
+   <div class="profile-login-label">Mobile number <em>Locked</em></div><strong class="profile-login-value" id="profile-mobile">—</strong>
+   <div class="profile-profile-note">Your mobile number and date of birth are protected account details and cannot be edited here.</div>
+  </section>
+  <section class="student-panel profile-side-card"><div class="profile-side-title"><span>✉</span><h2>Communications</h2></div>
+   <div class="profile-communication-row"><div><strong>LU Update communications</strong><span id="profile-marketing">—</span></div><span class="profile-status-pill" id="profile-communication-status">—</span></div>
+   <p class="profile-communication-help">Manage learning updates and announcements using Edit profile.</p>
+  </section>
+  <section class="profile-tip-card"><strong>Keep moving forward</strong><p>Build a steady routine, attempt tests regularly and review your results.</p></section>
+ </aside>
+</div>
 </section>
 <footer class="student-footer"><span>© LU Update · Student portal</span><span>Your published results are shown only in your account.</span></footer>
 </main></div>
