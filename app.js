@@ -318,7 +318,7 @@ async function loadQuestions(){
  if(!id){list.innerHTML="";if(progress)progress.textContent="Select a test to view its questions.";return}
  const {data:test,error:te}=await sb.from("tests").select("id,title,question_count,status").eq("id",id).single();
  if(te){message(te.message,true);return}
- const {data:qs,error}=await sb.from("questions").select("id,question_text,option_a,option_b,option_c,option_d,marks,negative_marks,question_order").eq("test_id",id).order("question_order");
+ const {data:qs,error}=await sb.from("questions").select("id,question_text,table_data,option_a,option_b,option_c,option_d,marks,negative_marks,question_order").eq("test_id",id).order("question_order");
  if(error){message(error.message,true);return}
  const rows=qs||[];
  const {data:keys,error:ke}=rows.length?await sb.from("answer_keys").select("question_id,correct_option").in("question_id",rows.map(q=>q.id)):{data:[],error:null};
@@ -352,7 +352,7 @@ async function saveQuestion(e){
 }
 function downloadQuestionTemplate(){
  if(!window.XLSX){message("Excel helper has not loaded yet. Refresh the page and try again.",true);return}
- const rows=[["Question Number","Question","Option A","Option B","Option C","Option D","Correct Option"],[1,"What is the capital of India?","Mumbai","New Delhi","Kolkata","Chennai","B"],[2,"Which one is a prime number?","9","15","17","21","C"]];
+ const rows=[["Question Number","Question","Option A","Option B","Option C","Option D","Correct Option","Table Data (optional)","Marks","Negative Marks"],[1,"Read the table and answer the question.\n\nWhich year had the highest sales?","2021","2022","2023","2024","C","Year | Sales\n2021 | 120\n2022 | 150\n2023 | 210\n2024 | 180",1,0],[2,"Consider the following statements:\n\nStatement I: 2 is the only even prime number.\nStatement II: 1 is a prime number.\n\nWhich statement(s) is/are correct?","Only I","Only II","Both I and II","Neither I nor II","A","",2,0.5]];
  const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(rows);ws["!cols"]=[{wch:18},{wch:48},{wch:24},{wch:24},{wch:24},{wch:24},{wch:18}];XLSX.utils.book_append_sheet(wb,ws,"Questions");XLSX.writeFile(wb,"LU-Update-Question-Template.xlsx");
 }
 async function importExcelQuestions(e,options={}){
@@ -373,10 +373,11 @@ async function importExcelQuestions(e,options={}){
   const matrix=XLSX.utils.sheet_to_json(wb.Sheets[first],{header:1,defval:"",raw:false,blankrows:false});
   if(!matrix.length)throw new Error("The worksheet is empty.");
   const cell=s=>String(s??"").trim();
+   const cellText=s=>String(s??"").replace(/\r\n?/g,"\n").trim();
   const firstRow=matrix[0].map(x=>cell(x).toLowerCase());
   const hasHeader=firstRow.some(x=>x.includes("question"))||firstRow.some(x=>x==="option a")||firstRow.some(x=>x==="correct option");
   const dataRows=(hasHeader?matrix.slice(1):matrix).filter(row=>row.some(v=>cell(v)!==""));
-  if(!dataRows.length)throw new Error("No question rows were found. Use columns A–G as specified.");
+  if(!dataRows.length)throw new Error("No question rows were found. Use columns A–J as specified.");
   if(dataRows.length>500)throw new Error("Import is limited to 500 questions per upload.");
   const {data:existing,error:qe}=await sb.from("questions").select("id,question_order").eq("test_id",testId);
   if(qe)throw new Error("Could not check existing questions: "+qe.message);
@@ -387,14 +388,17 @@ async function importExcelQuestions(e,options={}){
   for(let i=0;i<dataRows.length;i++){
    const row=dataRows[i]||[];
    const line=i+(hasHeader?2:1);
-   const rawNo=cell(row[0]),number=Number(rawNo),question=cell(row[1]),opts=[cell(row[2]),cell(row[3]),cell(row[4]),cell(row[5])],correct=cell(row[6]).toUpperCase().replace(/^OPTION\s*/,"");
+   const rawNo=cell(row[0]),number=Number(rawNo),question=cellText(row[1]),opts=[cellText(row[2]),cellText(row[3]),cellText(row[4]),cellText(row[5])],correct=cell(row[6]).toUpperCase().replace(/^OPTION\s*/,""),tableData=cellText(row[7]),marksRaw=cell(row[8]),negativeRaw=cell(row[9]),marks=marksRaw===""?1:Number(marksRaw),negativeMarks=negativeRaw===""?0:Number(negativeRaw);
    if(!rawNo||!Number.isInteger(number)||number<1)throw new Error("Row "+line+": column A must contain a positive integer question number.");
    if(used.has(number)||seen.has(number))throw new Error("Row "+line+": question number "+number+" is duplicated in this test or file.");
    if(!question)throw new Error("Row "+line+": question text in column B is blank.");
+    if(!Number.isFinite(marks)||marks<=0)throw new Error("Row "+line+": column I (Marks) must be a positive number.");
+    if(!Number.isFinite(negativeMarks)||negativeMarks<0)throw new Error("Row "+line+": column J (Negative Marks) must be zero or a positive number.");
+    if(tableData&&!tableData.split("\n").some(r=>r.includes("|")))throw new Error("Row "+line+": table data in column H must use | between columns and a new line between rows.");
    if(opts.some(x=>!x))throw new Error("Row "+line+": all four options in columns C–F are required.");
    if(!["A","B","C","D"].includes(correct))throw new Error("Row "+line+": column G must be A, B, C or D.");
    seen.add(number);
-   parsed.push({test_id:Number(testId),question_text:question,option_a:opts[0],option_b:opts[1],option_c:opts[2],option_d:opts[3],marks:1,negative_marks:0,question_order:number,_correct:correct});
+   parsed.push({test_id:Number(testId),question_text:question,table_data:tableData||null,option_a:opts[0],option_b:opts[1],option_c:opts[2],option_d:opts[3],marks,negative_marks:negativeMarks,question_order:number,_correct:correct});
   }
   pendingImportedQuestions={testId:Number(testId),fileName:file.name,rows:parsed};
   if(options.autoSave){return await saveImportedQuestions()}
