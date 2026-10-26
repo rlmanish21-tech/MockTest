@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1430">
-<title>Student Dashboard | LU Update</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css?v=searchable-courses-1">
+<title>Student Dashboard | LU Update</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css?v=animated-sidebar-1">
 <script src="config.js?v=automatic-results-1"></script><script type="module" src="app.js?v=student-name-search-2"></script>
 </head>
 <body class="student-app">
-<header class="student-top"><a class="student-brand" href="index.html"><span class="student-brand-mark">LU</span><span>LU <b>UPDATE</b><small>LEARN · PRACTISE · ACHIEVE</small></span></a><div class="student-top-actions"><span class="student-online">Student portal</span><button class="btn secondary" id="logout">Logout ↗</button></div></header>
+<header class="student-top"><button type="button" class="sidebar-toggle" id="student-sidebar-toggle" aria-label="Collapse sidebar" aria-controls="student-sidebar" aria-expanded="true"><span></span><span></span><span></span></button><a class="student-brand" href="index.html"><span class="student-brand-mark">LU</span><span>LU <b>UPDATE</b><small>LEARN · PRACTISE · ACHIEVE</small></span></a><div class="student-top-actions"><span class="student-online">Student portal</span><button class="btn secondary" id="logout">Logout ↗</button></div></header>
 <div class="student-layout">
-<aside class="student-sidebar">
+<aside class="student-sidebar" id="student-sidebar">
 <div class="student-nav-title">STUDENT MENU</div>
 <a class="student-nav active" href="#overview" data-view="overview"><span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/></svg></span> Dashboard</a>
 <a class="student-nav" href="#tests" data-view="tests"><span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span> Live tests</a>
