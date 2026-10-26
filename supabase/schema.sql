@@ -199,3 +199,8 @@ create policy attempt_answers_admin_all
   for all to authenticated
   using (public.is_admin())
   with check (public.is_admin());
+
+
+-- Central subject list stored on each course. Run this migration on existing Supabase projects.
+alter table public.courses add column if not exists subjects text[] not null default '{}';
+update public.courses set subjects='{}' where subjects is null;
