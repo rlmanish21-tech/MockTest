@@ -138,10 +138,7 @@ async function studentDash(){
   if(greetingHost){
     const hour=new Date().getHours();
     const greeting=hour<12?"Good morning":hour<17?"Good afternoon":"Good evening";
-    const profileNameField=$("profile-name");
-    const profileName=(profileNameField?.value||profileNameField?.textContent||"").trim();
-    const fallbackName=(document.querySelector(".student-brand")?.textContent||"").trim();
-    const name=profileName||fallbackName||"there";
+    const name=(p.full_name||user.user_metadata?.full_name||"Student").trim();
     greetingHost.textContent=greeting+", "+name+" 👋";
   }
   // Populate the visual overview only with real rows returned from Supabase.
