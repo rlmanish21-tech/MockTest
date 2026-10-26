@@ -30,8 +30,8 @@ async function bindCourseDropdown(streamId,courseId,searchId,initialValue=""){
   course.disabled=!selectedStream||(!choices.length&&!current);
   if(current&&selectedStream===stream.value)course.value=current;
  };
- stream.addEventListener("change",()=>{initialValue="";if(search)search.value="";render()});
- search?.addEventListener("input",()=>{const old=course.value;render();if([...course.options].some(o=>o.value===old))course.value=old});
+ if(!stream.dataset.coursePickerBound){stream.dataset.coursePickerBound="1";stream.addEventListener("change",()=>{initialValue="";if(search)search.value="";render()});}
+ if(search&&!search.dataset.coursePickerBound){search.dataset.coursePickerBound="1";search.addEventListener("input",()=>{const old=course.value;render();if([...course.options].some(o=>o.value===old))course.value=old});}
  render();
 }
 async function initRegistrationCourses(){
