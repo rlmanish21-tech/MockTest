@@ -6,12 +6,13 @@ const sb=configured?createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY):null;
 const $=id=>document.getElementById(id);
 function message(t,error=false){const e=$("message");if(!e)return;e.textContent=t;e.className="status show "+(error?"error":"ok")}
 function studentAuthEmail(m){return "student-"+String(m).replace(/\D/g,"")+"@accounts.luupdate.in"}
+function safeStudentName(profileData,user){const raw=(profileData?.role==="admin"?"":profileData?.full_name||user?.user_metadata?.full_name||"").trim();return !raw||/\badmin\b|lu\s*update/i.test(raw)?"Student":raw;}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function localDateTimeInput(v){if(!v)return "";const d=new Date(v);if(Number.isNaN(d.getTime()))return "";const pad=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+"T"+pad(d.getHours())+":"+pad(d.getMinutes())}
 function need(){if(!sb){message("Supabase is not configured. Add your project URL and publishable/anon key in config.js.",true);return false}return true}
 async function profile(){const {data:{user},error:userError}=await sb.auth.getUser();if(userError)throw userError;if(!user)return {user:null,p:null};const {data:p,error:profileError}=await sb.from("profiles").select("*").eq("id",user.id).maybeSingle();if(profileError)throw profileError;return {user,p}}
 async function initRegistrationCourses(){
- const stream=$("stream"),course=$("course"),help=$("course-help");
+ const stream=$("stream"),course=$("course"),help=$("course-help"),search=$("course-search");
  if(!stream||!course)return;
  if(!need())return;
  let courses=[];
@@ -31,13 +32,14 @@ async function initRegistrationCourses(){
   return true;
  }
  function refreshOptions(){
-  const selectedStream=stream.value;
-  const choices=courses.filter(item=>item.stream===selectedStream);
+  const selectedStream=stream.value,query=(search?.value||"").trim().toLowerCase();
+  const choices=courses.filter(item=>item.stream===selectedStream&&item.name.toLowerCase().includes(query));
   course.innerHTML='<option value="">'+(selectedStream?"Select a course":"Select stream first")+'</option>'+choices.map(item=>'<option value="'+esc(item.name)+'">'+esc(item.name)+'</option>').join("");
   course.disabled=!selectedStream||choices.length===0;
   if(help)help.textContent=!selectedStream?"Choose a stream to see active courses.":choices.length?choices.length+" active course(s) available.":"No active courses are listed for this stream. Ask the owner to add and activate courses.";
  }
- stream.addEventListener("change",async()=>{await fetchCourses()});
+ stream.addEventListener("change",async()=>{if(search)search.value="";await fetchCourses()});
+ search?.addEventListener("input",refreshOptions);
  await fetchCourses();
 }
 async function register(){const f=$("register-form");if(!f)return;f.addEventListener("submit",async e=>{e.preventDefault();if(!need())return;const mobile=$("mobile").value.trim(),dob=$("dob").value,password=$("password")?.value||"",confirmPassword=$("confirm-password")?.value||"";if(!/^\d{10}$/.test(mobile)||!dob){message("Enter a valid 10-digit mobile number and date of birth.",true);return}if(password.length<8){message("Create a password with at least 8 characters.",true);return}if(password!==confirmPassword){message("The passwords do not match.",true);return}const profileData={full_name:$("full_name").value.trim(),mobile,date_of_birth:dob,stream:$("stream").value,course_name:$("course").value.trim(),state:$("state").value.trim(),city:$("city").value.trim(),qualification:$("qualification").value,marketing_consent:$("marketing").checked};const submit=f.querySelector("button[type=submit]");if(submit){submit.disabled=true;submit.textContent="Creating account…"}try{const {data,error}=await sb.auth.signUp({email:studentAuthEmail(mobile),password,options:{data:profileData}});if(error)throw error;if(!data.session){message("Your account was created, but email confirmation is enabled. Turn off email confirmation in Supabase Auth settings or configure email confirmation before logging in.",true);return}const {data:p,error:pe}=await sb.from("profiles").select("id").eq("id",data.user.id).maybeSingle();if(pe||!p){message("Your account was created, but the student profile was not created. Please contact support.",true);return}message("Registration successful. Your profile has been saved. You can now use your new password to log in.");f.reset()}catch(err){message(err?.message||"Registration failed. Please try again.",true)}finally{if(submit){submit.disabled=false;submit.textContent="Register"}}})}
@@ -50,15 +52,15 @@ async function studentDash(){
   let {user,p}=await profile();
   if(!user){location.href="login.html";return}
   if(!p){await recoverStudentProfile(user);return}
-  const name=p.full_name||user.user_metadata?.full_name||"Student",course=p.course_name||"Course not set",stream=p.stream||"Stream not set";
+  const name=safeStudentName(p,user),course=p.course_name||"Course not set",stream=p.stream||"Stream not set";
   if($("welcome"))$("welcome").textContent="Welcome, "+name;
   const profileForm=$("profile-edit-form"),profileView=$("profile-view"),editButton=$("edit-profile-btn");
   const showProfile=(data)=>{
    const dob=data.date_of_birth?String(data.date_of_birth).slice(0,10):"Not provided";
    const put=(id,value)=>{const el=$(id);if(el)el.textContent=value||"Not provided"};
-   put("profile-name",data.full_name||"Student");put("profile-mobile",data.mobile||"Not provided");put("profile-dob",dob);put("profile-stream",data.stream);put("profile-course",data.course_name);put("profile-qualification",data.qualification);put("profile-city",data.city);put("profile-state",data.state);put("profile-marketing",data.marketing_consent?"Opted in":"Not opted in");put("profile-banner-name",data.full_name||"Student");put("profile-avatar",(data.full_name||"S").trim().charAt(0).toUpperCase());put("profile-communication-status",data.marketing_consent?"OPTED IN":"OPTED OUT");const profileFields=[data.full_name,data.mobile,data.date_of_birth,data.stream,data.course_name,data.qualification,data.city,data.state];const completed=profileFields.filter(v=>String(v||"").trim()).length;const percent=Math.round(completed/profileFields.length*100);put("profile-completion-percent",percent+"%");put("profile-completion-count",completed+" of "+profileFields.length+" details filled");const profileRing=document.querySelector(".profile-ring");if(profileRing)profileRing.style.setProperty("--profile-progress",percent+"%");
+   put("profile-name",safeStudentName(data,user));put("profile-mobile",data.mobile||"Not provided");put("profile-dob",dob);put("profile-stream",data.stream);put("profile-course",data.course_name);put("profile-qualification",data.qualification);put("profile-city",data.city);put("profile-state",data.state);put("profile-marketing",data.marketing_consent?"Opted in":"Not opted in");put("profile-banner-name",safeStudentName(data,user));put("profile-avatar",(data.full_name||"S").trim().charAt(0).toUpperCase());put("profile-communication-status",data.marketing_consent?"OPTED IN":"OPTED OUT");const profileFields=[data.full_name,data.mobile,data.date_of_birth,data.stream,data.course_name,data.qualification,data.city,data.state];const completed=profileFields.filter(v=>String(v||"").trim()).length;const percent=Math.round(completed/profileFields.length*100);put("profile-completion-percent",percent+"%");put("profile-completion-count",completed+" of "+profileFields.length+" details filled");const profileRing=document.querySelector(".profile-ring");if(profileRing)profileRing.style.setProperty("--profile-progress",percent+"%");
    if($("profile-line"))$("profile-line").textContent=(data.course_name||"Course not set")+" · "+(data.stream||"Stream not set")+" · "+[data.city,data.state].filter(Boolean).join(", ");
-   if($("welcome"))$("welcome").textContent="Welcome, "+(data.full_name||"Student");
+   if($("welcome"))$("welcome").textContent="Welcome, "+safeStudentName(data,user);
    if($("hero-course"))$("hero-course").textContent=data.course_name||"Course not set";
    if($("stat-stream"))$("stat-stream").textContent=data.stream||"Not set";
   };
@@ -138,7 +140,7 @@ async function studentDash(){
   if(greetingHost){
     const hour=new Date().getHours();
     const greeting=hour<12?"Good morning":hour<17?"Good afternoon":"Good evening";
-    const name=(p.full_name||user.user_metadata?.full_name||"Student").trim();
+    const name=safeStudentName(p,user);
     greetingHost.textContent=greeting+", "+name+" 👋";
   }
   // Populate the visual overview only with real rows returned from Supabase.
@@ -284,12 +286,13 @@ async function loadCourses(){
  const active=rows.filter(c=>c.is_active);
  const sel=$("test-course");
  sel.innerHTML=active.map(c=>'<option value="'+c.id+'">'+esc(c.name)+' — '+esc(c.stream)+'</option>').join("");
- const optionHost=$("course-picker-options"),summary=$("course-picker-summary"),menu=$("course-picker-menu"),trigger=$("course-picker-trigger");
+ const optionHost=$("course-picker-options"),summary=$("course-picker-summary"),menu=$("course-picker-menu"),trigger=$("course-picker-trigger"),pickerSearch=$("course-picker-search");
  if(optionHost&&summary&&menu&&trigger){
   const previouslySelected=new Set([...sel.selectedOptions].map(o=>o.value));
   optionHost.innerHTML=active.length?active.map(c=>'<label class="course-picker-option"><input type="checkbox" value="'+c.id+'" '+(previouslySelected.has(String(c.id))?'checked':'')+'><span>'+esc(c.name)+' — '+esc(c.stream)+'</span></label>').join(""):'<div class="course-picker-empty">No active courses. Add or reactivate a course first.</div>';
   const syncPicker=()=>{const checked=[...optionHost.querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.value);[...sel.options].forEach(o=>o.selected=checked.includes(o.value));summary.textContent=checked.length?checked.map(id=>active.find(c=>String(c.id)===id)?.name||"Course").join(", "):"Choose one or more courses";};
   optionHost.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.addEventListener("change",syncPicker));
+   if(pickerSearch){pickerSearch.value="";pickerSearch.oninput=()=>{const q=pickerSearch.value.trim().toLowerCase();optionHost.querySelectorAll(".course-picker-option").forEach(row=>row.hidden=!(row.textContent||"").toLowerCase().includes(q));};}
   trigger.onclick=()=>{const open=menu.hidden;menu.hidden=!open;trigger.setAttribute("aria-expanded",String(open));};
   $("course-picker-done").onclick=()=>{menu.hidden=true;trigger.setAttribute("aria-expanded","false");};
   if(!previouslySelected.size)syncPicker();else {summary.textContent=[...previouslySelected].map(id=>active.find(c=>String(c.id)===id)?.name).filter(Boolean).join(", ")||"Choose one or more courses";}
