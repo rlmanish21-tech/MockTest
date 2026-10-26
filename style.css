@@ -769,3 +769,13 @@ footer{text-align:center;padding:26px;color:var(--muted);font-size:12.5px}
 }
 @media(max-width:640px){.sidebar-toggle{width:38px;height:38px;padding:9px}.student-top,.owner-topbar{gap:9px}}
 @media(prefers-reduced-motion:reduce){.student-layout,.owner-layout,.student-sidebar,.owner-sidebar,.sidebar-toggle span{transition:none!important}}
+
+
+/* Table-based question content */
+.question-table-wrap{max-width:100%;margin:18px 0 24px;overflow-x:auto;border:1px solid var(--line-2);border-radius:12px;background:var(--surface)}
+.question-data-table{width:100%;min-width:320px;border-collapse:collapse;font-size:14px;line-height:1.55}
+.question-data-table th,.question-data-table td{padding:11px 14px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);text-align:left;vertical-align:top;white-space:pre-wrap}
+.question-data-table th{background:var(--canvas);font-weight:800;color:var(--ink-900)}
+.question-data-table tr:last-child td{border-bottom:0}.question-data-table th:last-child,.question-data-table td:last-child{border-right:0}
+.question-table-source{margin:12px 0;padding:12px 14px;overflow:auto;white-space:pre-wrap;background:var(--canvas);border:1px solid var(--line);border-radius:10px;font:13px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace}
+#analysis-question-text{white-space:pre-wrap;overflow-wrap:anywhere}
