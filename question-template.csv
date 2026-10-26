@@ -1,2 +1,14 @@
-question,option_a,option_b,option_c,option_d,correct_option,marks,negative_marks
-"Which is a current asset?","Cash","Building","Long-term loan","Share capital",A,1,0
+question_number,question,option_a,option_b,option_c,option_d,correct_option,table_data,marks,negative_marks
+1,"Read the table and answer the question.
+
+Which year had the highest sales?",2021,2022,2023,2024,C,"Year | Sales
+2021 | 120
+2022 | 150
+2023 | 210
+2024 | 180",1,0
+2,"Consider the following statements:
+
+Statement I: 2 is the only even prime number.
+Statement II: 1 is a prime number.
+
+Which statement(s) is/are correct?",Only I,Only II,Both I and II,Neither I nor II,A,,2,0.5
