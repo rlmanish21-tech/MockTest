@@ -778,4 +778,4 @@ footer{text-align:center;padding:26px;color:var(--muted);font-size:12.5px}
 .question-data-table th{background:var(--canvas);font-weight:800;color:var(--ink-900)}
 .question-data-table tr:last-child td{border-bottom:0}.question-data-table th:last-child,.question-data-table td:last-child{border-right:0}
 .question-table-source{margin:12px 0;padding:12px 14px;overflow:auto;white-space:pre-wrap;background:var(--canvas);border:1px solid var(--line);border-radius:10px;font:13px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace}
-#analysis-question-text{white-space:pre-wrap;overflow-wrap:anywhere}
+#analysis-question-text{white-space:pre-wrap;overflow-wrap:anywhere}.exam-option span,.analysis-choice{white-space:pre-wrap;overflow-wrap:anywhere}
