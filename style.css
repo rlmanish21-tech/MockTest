@@ -734,3 +734,6 @@ footer{text-align:center;padding:26px;color:var(--muted);font-size:12.5px}
   .results-mini-chart{gap:8px}
 }
 @media(max-width:380px){.student-stat-grid,.owner-stat-grid{grid-template-columns:1fr}}
+
+/* Searchable course dropdowns */
+.course-picker-search-wrap{padding:10px 12px;border-bottom:1px solid var(--line);background:var(--surface)}.course-picker-search-wrap input{width:100%;min-height:40px;padding:9px 12px;border:1px solid var(--line-2);border-radius:9px;background:var(--surface);color:var(--text)}.course-picker-option[hidden]{display:none!important}#course-search{margin-bottom:8px}
