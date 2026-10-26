@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Owner Dashboard | LU Update</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css?v=searchable-courses-1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css?v=animated-sidebar-1">
 <script src="config.js?v=question-workflow-3"></script><script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><script type="module" src="app.js?v=student-name-search-2"></script>
 </head>
 <body class="owner-app">
-<header class="owner-topbar">
+<header class="owner-topbar"><button type="button" class="sidebar-toggle" id="owner-sidebar-toggle" aria-label="Collapse sidebar" aria-controls="owner-sidebar" aria-expanded="true"><span></span><span></span><span></span></button>
   <a class="owner-brand" href="index.html"><span class="owner-brand-mark">LU</span><span>LU <b>UPDATE</b><small>MOCK TEST ADMINISTRATION</small></span></a>
   <div class="owner-top-actions"><span class="owner-secure"><i></i> Secure owner workspace</span><button class="btn secondary" id="admin-logout">Logout ↗</button></div>
 </header>
 <div class="owner-layout">
-  <aside class="owner-sidebar">
+  <aside class="owner-sidebar" id="owner-sidebar">
     <div class="owner-side-label">WORKSPACE</div>
     <button type="button" class="owner-nav active" data-admin-page="dashboard-view"><span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/></svg></span> Dashboard</button>
     <button type="button" class="owner-nav" data-admin-page="courses-section"><span><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5Z"/><path d="M4 19a2 2 0 0 1 2-2h13"/></svg></span> Courses</button>
