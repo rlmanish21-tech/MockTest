@@ -114,7 +114,9 @@ async function studentDash(){
      if(updateError)throw updateError;
      const {data:updated,error:readBackError}=await sb.from("profiles").select("*").eq("id",user.id).maybeSingle();
      if(readBackError)throw readBackError;
-     if(!updated)throw new Error("No profile row was updated. Your Supabase profiles UPDATE policy may be blocking this change; check the RLS policy for the signed-in student.");
+     if(!updated)throw new Error("No profile row was found after saving. Check the Supabase profiles SELECT policy.");
+     const mismatch=Object.keys(payload).some(key=>String(updated[key]??"")!==String(payload[key]??""));
+     if(mismatch)throw new Error("Your profile was not updated. Check that Supabase Row Level Security allows students to UPDATE their own profiles (id = auth.uid()).");
      p=updated;showProfile(p);profileForm.hidden=true;profileView.hidden=false;editButton.hidden=false;
      message("Profile updated successfully.");
     }catch(err){message("Profile could not be saved: "+(err?.message||String(err)),true)}
