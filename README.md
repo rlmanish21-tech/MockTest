@@ -15,9 +15,10 @@ Frontend starter using **GitHub Pages** and **Supabase**. Student pages and the 
 ## 1. Configure Supabase
 1. Create a Supabase project.
 2. In SQL Editor, run `supabase/schema.sql`.
-3. In Project Settings → API, copy the Project URL and **publishable/anon key** into `config.js`.
-4. In Authentication settings, configure Phone sign-in and password sign-in. To follow the requested no-OTP registration, phone confirmation must be disabled; test this carefully before using real student data.
-5. Add the GitHub Pages URL to Supabase Authentication → URL Configuration / allowed redirect URLs.
+3. Then run these SQL files in order: `supabase/student-exam-workflow.sql`, `supabase/test-subject.sql`, `supabase/automatic-results-and-ranks.sql`, `supabase/atomic-test-deletion.sql`, and `supabase/save-attempt-answer.sql`. The last file is required for secure answer saving and the Mark for Review feature. Run `supabase/multi-course-migration.sql` only if upgrading an older database that does not yet have `test_courses`.
+4. In Project Settings → API, copy the Project URL and **publishable/anon key** into `config.js`.
+5. In Authentication settings, configure Phone sign-in and password sign-in. To follow the requested no-OTP registration, phone confirmation must be disabled; test this carefully before using real student data.
+6. Add the GitHub Pages URL to Supabase Authentication → URL Configuration / allowed redirect URLs.
 
 ### Create the owner account
 1. Create the owner login in Supabase Authentication (email + password).
