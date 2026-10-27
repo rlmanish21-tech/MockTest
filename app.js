@@ -266,13 +266,13 @@ async function uploadCourseImport(){
   let inserted=0,failed=[];
   for(let i=0;i<rows.length;i+=100){
    const batch=rows.slice(i,i+100).map(r=>({name:r.name,stream:r.stream,subjects:r.subjects,is_active:true}));
-   const {data,error}=await sb.from("courses").upsert(batch,{onConflict:"name,stream",ignoreDuplicates:true}).select("id");
+   const {data,error}=await sb.from("courses").upsert(batch,{onConflict:"name,stream"}).select("id");
    if(error)throw error;
    inserted+=(data||[]).length;
   }
   const skipped=rows.length-inserted;
   await loadCourses();await loadOwnerOverview();
-  setCourseImportStatus("Upload complete: "+inserted+" new course(s) added; "+skipped+" duplicate course + stream combination(s) skipped. "+pendingCourseImportRows.filter(r=>!r.valid).length+" invalid row(s) were not uploaded.","success");
+  setCourseImportStatus("Upload complete: "+inserted+" course row(s) added or updated; "+skipped+" existing course row(s) unchanged. Existing courses now receive the subjects listed in this file. "+pendingCourseImportRows.filter(r=>!r.valid).length+" invalid row(s) were not uploaded.","success");
   resetCourseImportPreview();
  }catch(err){const detail=String(err?.message||err);const missingSubjects=/could not find the .subjects. column of .courses.|column courses\.subjects does not exist|schema cache/i.test(detail);setCourseImportStatus(missingSubjects?"Upload blocked: the Supabase courses table is missing the subjects column. In Supabase → SQL Editor, run the course-subjects migration from supabase/schema.sql in the GitHub repository, then retry the upload. No courses were confirmed as uploaded.":"Upload failed: "+detail+". No success is assumed; check the course list before retrying.","error")}
  finally{button.textContent="Upload courses";button.disabled=!pendingCourseImportRows.some(r=>r.valid)}
