@@ -274,7 +274,7 @@ async function uploadCourseImport(){
   await loadCourses();await loadOwnerOverview();
   setCourseImportStatus("Upload complete: "+inserted+" new course(s) added; "+skipped+" duplicate course + stream combination(s) skipped. "+pendingCourseImportRows.filter(r=>!r.valid).length+" invalid row(s) were not uploaded.","success");
   resetCourseImportPreview();
- }catch(err){const detail=String(err?.message||err);const missingSubjects=/could not find the .subjects. column of .courses.|column courses\.subjects does not exist|schema cache/i.test(detail);setCourseImportStatus(missingSubjects?"Upload blocked: the Supabase courses table is missing the subjects column. In Supabase → SQL Editor, run the migration in supabase/add-course-subjects.sql from the GitHub repository, then retry the upload. No courses were confirmed as uploaded.":"Upload failed: "+detail+". No success is assumed; check the course list before retrying.","error")}
+ }catch(err){const detail=String(err?.message||err);const missingSubjects=/could not find the .subjects. column of .courses.|column courses\.subjects does not exist|schema cache/i.test(detail);setCourseImportStatus(missingSubjects?"Upload blocked: the Supabase courses table is missing the subjects column. In Supabase → SQL Editor, run the course-subjects migration from supabase/schema.sql in the GitHub repository, then retry the upload. No courses were confirmed as uploaded.":"Upload failed: "+detail+". No success is assumed; check the course list before retrying.","error")}
  finally{button.textContent="Upload courses";button.disabled=!pendingCourseImportRows.some(r=>r.valid)}
 }
 
