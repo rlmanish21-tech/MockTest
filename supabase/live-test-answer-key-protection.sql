@@ -131,6 +131,43 @@ begin
 end;
 $$;
 
+-- 1) Prevent direct PostgREST/table reads of the answer key as well.
+-- SECURITY DEFINER exam functions can still read answer_keys, but students cannot
+-- query the table directly. Admins retain management access.
+do $
+declare
+  p record;
+begin
+  for p in
+    select policyname
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'answer_keys'
+  loop
+    execute format('drop policy if exists %I on public.answer_keys', p.policyname);
+  end loop;
+end $;
+
+alter table public.answer_keys enable row level security;
+
+drop policy if exists answer_keys_admin_manage on public.answer_keys;
+create policy answer_keys_admin_manage
+on public.answer_keys
+for all
+to authenticated
+using (
+  exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid() and p.role = 'admin'
+  )
+)
+with check (
+  exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid() and p.role = 'admin'
+  )
+);
+
 -- Do not leave the SECURITY DEFINER RPC executable by anonymous/public roles.
 revoke all on function public.submit_test_attempt(bigint) from public, anon;
 grant execute on function public.submit_test_attempt(bigint) to authenticated;
