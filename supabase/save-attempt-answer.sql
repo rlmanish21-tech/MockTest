@@ -15,7 +15,7 @@ returns void
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $function$
 declare
   v_user uuid := auth.uid();
   v_attempt public.attempts%rowtype;
@@ -71,7 +71,7 @@ begin
         marked_for_review = excluded.marked_for_review,
         saved_at = pg_catalog.now();
 end;
-$$;
+$function$;
 
 revoke all on function public.save_attempt_answer(bigint, bigint, text, boolean) from public, anon;
 grant execute on function public.save_attempt_answer(bigint, bigint, text, boolean) to authenticated;
