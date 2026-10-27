@@ -4,12 +4,14 @@
 
 alter table public.attempt_answers
   add column if not exists marked_for_review boolean not null default false;
+alter table public.attempt_answers add column if not exists question_time_seconds integer not null default 0 check (question_time_seconds >= 0);
 
 create or replace function public.save_attempt_answer(
   p_attempt_id bigint,
   p_question_id bigint,
   p_selected_option text,
-  p_marked_for_review boolean default false
+  p_marked_for_review boolean default false,
+  p_question_time_seconds integer default 0
 )
 returns void
 language plpgsql
@@ -63,17 +65,19 @@ begin
   end if;
 
   insert into public.attempt_answers
-    (attempt_id, question_id, selected_option, marked_for_review, saved_at)
+    (attempt_id, question_id, selected_option, marked_for_review, question_time_seconds, saved_at)
   values
-    (v_attempt.id, p_question_id, p_selected_option, coalesce(p_marked_for_review, false), now())
+    (v_attempt.id, p_question_id, p_selected_option, coalesce(p_marked_for_review, false), greatest(coalesce(p_question_time_seconds,0),0), pg_catalog.now())
   on conflict (attempt_id, question_id) do update
     set selected_option = excluded.selected_option,
         marked_for_review = excluded.marked_for_review,
+        question_time_seconds = greatest(public.attempt_answers.question_time_seconds, excluded.question_time_seconds),
         saved_at = pg_catalog.now();
 end;
 $function$;
 
-revoke all on function public.save_attempt_answer(bigint, bigint, text, boolean) from public, anon;
-grant execute on function public.save_attempt_answer(bigint, bigint, text, boolean) to authenticated;
+drop function if exists public.save_attempt_answer(bigint, bigint, text, boolean);
+revoke all on function public.save_attempt_answer(bigint, bigint, text, boolean, integer) from public, anon;
+grant execute on function public.save_attempt_answer(bigint, bigint, text, boolean, integer) to authenticated;
 
 notify pgrst, 'reload schema';
