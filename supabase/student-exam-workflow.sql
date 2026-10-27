@@ -146,3 +146,23 @@ create policy answers_write_own_attempt
 
 -- Refresh Supabase/PostgREST's function schema cache after applying this migration.
 notify pgrst, 'reload schema';
+
+
+-- LU Update: record tab-switch disqualification after more than 3 switches.
+alter table public.attempts add column if not exists disqualified boolean not null default false;
+alter table public.attempts add column if not exists disqualification_reason text;
+create or replace function public.disqualify_test_attempt(p_attempt_id bigint,p_reason text default 'Switched away from the test more than 3 times')
+returns void language plpgsql security definer set search_path = ''
+as $function$
+declare v_user uuid := auth.uid(); v_attempt public.attempts%rowtype;
+begin
+ if v_user is null then raise exception 'Please sign in first.'; end if;
+ select * into v_attempt from public.attempts where id=p_attempt_id and student_id=v_user for update;
+ if not found then raise exception 'Attempt not found for this account.'; end if;
+ if v_attempt.status <> 'in_progress' then raise exception 'Attempt is no longer in progress.'; end if;
+ update public.attempts set disqualified=true, disqualification_reason=left(coalesce(p_reason,'Tab-switch limit exceeded'),250), status='submitted', submitted_at=pg_catalog.now() where id=p_attempt_id;
+end;
+$function$;
+revoke all on function public.disqualify_test_attempt(bigint,text) from public, anon;
+grant execute on function public.disqualify_test_attempt(bigint,text) to authenticated;
+notify pgrst, 'reload schema';
