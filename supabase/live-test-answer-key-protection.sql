@@ -134,7 +134,7 @@ $$;
 -- 1) Prevent direct PostgREST/table reads of the answer key as well.
 -- SECURITY DEFINER exam functions can still read answer_keys, but students cannot
 -- query the table directly. Admins retain management access.
-do $
+do $$
 declare
   p record;
 begin
@@ -146,7 +146,7 @@ begin
   loop
     execute format('drop policy if exists %I on public.answer_keys', p.policyname);
   end loop;
-end $;
+end $$;
 
 alter table public.answer_keys enable row level security;
 
