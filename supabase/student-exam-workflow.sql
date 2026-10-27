@@ -81,7 +81,7 @@ begin
   select coalesce(jsonb_agg(jsonb_build_object(
     'question_id',q.id,'question_order',q.question_order,'question_text',q.question_text,
     'option_a',q.option_a,'option_b',q.option_b,'option_c',q.option_c,'option_d',q.option_d,
-    'selected_option',aa.selected_option,'correct_option',k.correct_option,'marks',q.marks,
+    'selected_option',aa.selected_option,'correct_option',k.correct_option,'question_time_seconds',coalesce(aa.question_time_seconds,0),'marks',q.marks,
     'negative_marks',q.negative_marks,
     'earned',case when aa.selected_option is null then 0 when upper(aa.selected_option)=upper(k.correct_option) then q.marks else -q.negative_marks end
   ) order by q.question_order),'[]'::jsonb)
