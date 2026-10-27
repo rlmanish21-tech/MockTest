@@ -1,5 +1,6 @@
 -- LU Update security/performance hardening.
 -- Run this migration in Supabase SQL Editor after the existing exam/ranking migrations.
+-- Live-test ranks are calculated automatically about 10-11 minutes after ends_at.
 
 -- 1) Do not expose question text for a published live test before starts_at.
 --    Students may read questions for non-live published tests, after a live test
@@ -18,8 +19,6 @@ end $$;
 
 alter table public.questions enable row level security;
 
--- Preserve administrative question import/edit/delete access after replacing
--- broad student-facing SELECT policies.
 create policy questions_admin_manage
 on public.questions
 for all
@@ -59,11 +58,8 @@ using (
   )
 );
 
--- 2) Stop recalculating a whole test's rankings from every result write.
---    This removes the hot-path trigger; submissions only save/evaluate the
---    student's own result. Ranking is refreshed lazily when a student opens
---    their dashboard, and only for tests that student has results for.
-
+-- 2) Remove the per-result ranking trigger. A submission must not rank the
+--    entire live test while hundreds/thousands of students are submitting.
 drop trigger if exists results_recalculate_ranks on public.results;
 
 create table if not exists public.result_rank_refresh_state (
@@ -84,8 +80,10 @@ begin
   select * into v_test from public.tests where id = p_test_id;
   if not found then return; end if;
 
-  -- Never calculate or rewrite ranks while a live window is still open.
-  if v_test.test_type = 'live' and v_test.ends_at is not null and now() < v_test.ends_at then
+  -- Live-test ranks remain untouched until 10 minutes after ends_at.
+  -- A missing ends_at fails closed: ranks are not calculated.
+  if v_test.test_type = 'live'
+     and (v_test.ends_at is null or now() < v_test.ends_at + interval '10 minutes') then
     return;
   end if;
 
@@ -102,6 +100,43 @@ begin
 end;
 $$;
 
+-- Automatic worker target: cron calls this once a minute. It only processes
+-- live tests whose submission window ended at least 10 minutes ago and whose
+-- rank refresh has not already been completed for this ending time.
+create or replace function public.refresh_ended_live_test_ranks()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_test record;
+begin
+  for v_test in
+    select t.id, t.ends_at
+    from public.tests t
+    where t.test_type = 'live'
+      and t.ends_at is not null
+      and now() >= t.ends_at + interval '10 minutes'
+      and not exists (
+        select 1
+        from public.result_rank_refresh_state s
+        where s.test_id = t.id
+          and s.refreshed_at >= t.ends_at + interval '10 minutes'
+      )
+    order by t.ends_at, t.id
+  loop
+    -- Serialize the scheduled worker against dashboard refreshes.
+    if pg_try_advisory_xact_lock(72103, hashtext(v_test.id::text)) then
+      perform public.refresh_test_ranks(v_test.id);
+      insert into public.result_rank_refresh_state(test_id, refreshed_at)
+      values(v_test.id, now())
+      on conflict(test_id) do update set refreshed_at = excluded.refreshed_at;
+    end if;
+  end loop;
+end;
+$$;
+
 create or replace function public.refresh_my_result_ranks()
 returns void
 language plpgsql
@@ -114,17 +149,19 @@ declare
 begin
   if auth.uid() is null then raise exception 'Please sign in first.'; end if;
 
-  -- Only consider tests for which this signed-in student has a published result.
+  -- Only inspect tests where this student has a published result.
+  -- Live-test ranks are unavailable until 10 minutes after ends_at.
   for v_test in
     select distinct t.id
     from public.tests t
     join public.results r on r.test_id = t.id
     where r.student_id = auth.uid()
       and r.published_at is not null
-      and (t.test_type is distinct from 'live' or t.ends_at is null or now() >= t.ends_at)
+      and (
+        t.test_type is distinct from 'live'
+        or (t.ends_at is not null and now() >= t.ends_at + interval '10 minutes')
+      )
   loop
-    -- Coalesce concurrent dashboard refreshes and avoid repeatedly ranking a
-    -- large test for every student who opens the dashboard in a short period.
     if pg_try_advisory_xact_lock(72103, hashtext(v_test.id::text)) then
       select s.refreshed_at into v_refreshed
       from public.result_rank_refresh_state s
@@ -142,6 +179,28 @@ end;
 $$;
 
 revoke all on function public.refresh_test_ranks(bigint) from public, anon, authenticated;
+revoke all on function public.refresh_ended_live_test_ranks() from public, anon, authenticated;
 grant execute on function public.refresh_my_result_ranks() to authenticated;
+
+-- Supabase supports pg_cron. The job runs once per minute, so ranks are released
+-- between 10 and approximately 11 minutes after ends_at. Re-running this
+-- migration replaces the named job rather than creating duplicate workers.
+create extension if not exists pg_cron;
+
+do $$
+declare
+  v_job record;
+begin
+  for v_job in select jobid from cron.job where jobname = 'lu-update-refresh-live-ranks'
+  loop
+    perform cron.unschedule(v_job.jobid);
+  end loop;
+
+  perform cron.schedule(
+    'lu-update-refresh-live-ranks',
+    '* * * * *',
+    'select public.refresh_ended_live_test_ranks();'
+  );
+end $$;
 
 notify pgrst, 'reload schema';
