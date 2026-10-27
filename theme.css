@@ -581,3 +581,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--ink-900)}
 .omr-float.f1{bottom:-28px;left:24px}
 
 .auth-aside h2 em{-webkit-box-decoration-break:clone;box-decoration-break:clone;line-height:1.2}
+
+/* Ensure exam timer/fullscreen controls remain visible over theme styles */
+.exam-top #exam-fullscreen{display:inline-flex;align-items:center;justify-content:center;position:relative;z-index:2}
+.exam-app #question-time-taken,.exam-app #analysis-question-time{display:inline-flex;visibility:visible;opacity:1}
