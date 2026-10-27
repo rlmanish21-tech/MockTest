@@ -10,11 +10,26 @@ begin
   for p in
     select policyname
     from pg_policies
-    where schemaname='public' and tablename='questions' and cmd='SELECT'
+    where schemaname='public' and tablename='questions' and cmd in ('SELECT','ALL')
   loop
     execute format('drop policy if exists %I on public.questions', p.policyname);
   end loop;
 end $$;
+
+alter table public.questions enable row level security;
+
+-- Preserve administrative question import/edit/delete access after replacing
+-- broad student-facing SELECT policies.
+create policy questions_admin_manage
+on public.questions
+for all
+to authenticated
+using (
+  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+)
+with check (
+  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+);
 
 create policy questions_read_when_available
 on public.questions
