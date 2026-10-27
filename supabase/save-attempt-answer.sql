@@ -14,8 +14,8 @@ create or replace function public.save_attempt_answer(
 returns void
 language plpgsql
 security definer
-set search_path = public
-as $$
+set search_path = ''
+as $
 declare
   v_user uuid := auth.uid();
   v_attempt public.attempts%rowtype;
@@ -42,12 +42,12 @@ begin
   if not found then
     raise exception 'The test for this attempt could not be found.';
   end if;
-  if now() >= v_attempt.started_at + make_interval(mins => v_test.duration_minutes) then
+  if pg_catalog.now() >= v_attempt.started_at + pg_catalog.make_interval(mins => v_test.duration_minutes) then
     raise exception 'The test time has expired. Your answers can no longer be changed.';
   end if;
   if v_test.test_type = 'live'
      and v_test.ends_at is not null
-     and now() >= v_test.ends_at
+     and pg_catalog.now() >= v_test.ends_at
      and v_attempt.started_at < v_test.ends_at + interval '2 hours' then
     raise exception 'The live test window has ended. Answers can no longer be changed.';
   end if;
@@ -69,7 +69,7 @@ begin
   on conflict (attempt_id, question_id) do update
     set selected_option = excluded.selected_option,
         marked_for_review = excluded.marked_for_review,
-        saved_at = now();
+        saved_at = pg_catalog.now();
 end;
 $$;
 
