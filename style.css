@@ -617,6 +617,29 @@ footer{text-align:center;padding:26px;color:var(--muted);font-size:12.5px}
 .analysis-score .exam-muted{color:#b4bbe0}
 .analysis-score>strong:not(.analysis-rank){font-family:var(--font-display);font-weight:500;font-size:clamp(40px,6vw,64px);line-height:1;letter-spacing:-.03em;color:#fff}
 .analysis-rank{display:block;margin:6px 0;font-size:20px!important;font-weight:700;color:var(--gold-300)!important}
+
+.analysis-time-card,.analysis-comparison-card{margin:0 0 22px}
+.analysis-time-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.analysis-time-summary>div,.analysis-comparison-metric{padding:16px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface-2);min-width:0}
+.analysis-time-label,.analysis-comparison-metric>span{display:block;font-size:12px;font-weight:800;color:var(--muted)}
+.analysis-time-summary strong,.analysis-comparison-metric>strong{display:block;margin:8px 0;font-family:var(--font-display);font-size:25px;font-weight:500;color:var(--ink-900)}
+.analysis-time-summary small,.analysis-comparison-metric small{display:block;font-size:12px;color:var(--muted);line-height:1.6}
+.analysis-time-track{height:10px;margin:18px 0 12px;border-radius:999px;overflow:hidden;background:var(--canvas)}
+.analysis-time-track span{display:block;height:100%;border-radius:inherit;background:var(--brand-600)}
+.analysis-time-verdict{padding:14px 16px;border-radius:var(--r-md);background:var(--canvas);line-height:1.6}
+.analysis-time-verdict strong{color:var(--ink-900)}
+.analysis-time-verdict p{margin:4px 0 8px;color:var(--text-2);font-size:13px}
+.analysis-time-verdict small{font-size:11.5px;color:var(--muted)}
+.analysis-comparison-caption{margin-bottom:12px;font-size:13px;color:var(--muted)}
+.analysis-comparison-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.analysis-comparison-metric .positive{color:var(--ok);font-weight:800}
+.analysis-comparison-metric .negative{color:var(--bad);font-weight:800}
+.analysis-comparison-metric .neutral{color:var(--muted);font-weight:800}
+.analysis-comparison-metric .analysis-comparison-baseline{margin-top:5px}
+.analysis-comparison-empty{padding:16px;border-radius:var(--r-md);background:var(--canvas)}
+.analysis-comparison-empty p{margin:6px 0 0;color:var(--muted);font-size:13px}
+@media(max-width:720px){.analysis-time-summary{grid-template-columns:1fr}.analysis-comparison-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
 .analysis-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:0 0 28px}
 .analysis-stat{padding:18px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface-2)}
 .analysis-stat span{display:block;font-size:12.5px;font-weight:700;color:var(--muted)}
