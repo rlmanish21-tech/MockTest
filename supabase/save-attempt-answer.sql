@@ -5,6 +5,7 @@
 alter table public.attempt_answers
   add column if not exists marked_for_review boolean not null default false;
 alter table public.attempt_answers add column if not exists question_time_seconds integer not null default 0 check (question_time_seconds >= 0);
+drop function if exists public.save_attempt_answer(bigint, bigint, text, boolean);
 
 create or replace function public.save_attempt_answer(
   p_attempt_id bigint,
@@ -76,7 +77,6 @@ begin
 end;
 $function$;
 
-drop function if exists public.save_attempt_answer(bigint, bigint, text, boolean);
 revoke all on function public.save_attempt_answer(bigint, bigint, text, boolean, integer) from public, anon;
 grant execute on function public.save_attempt_answer(bigint, bigint, text, boolean, integer) to authenticated;
 
