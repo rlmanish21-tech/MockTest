@@ -74,6 +74,7 @@ create table if not exists public.attempt_answers (
  question_id bigint not null references public.questions(id) on delete cascade,
  selected_option text check(selected_option in ('A','B','C','D')),
  marked_for_review boolean not null default false,
+ question_time_seconds integer not null default 0 check(question_time_seconds >= 0),
  saved_at timestamptz not null default now(),
  unique(attempt_id,question_id)
 );
