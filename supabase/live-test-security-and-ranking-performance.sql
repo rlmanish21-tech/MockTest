@@ -18,6 +18,8 @@ begin
 end $$;
 
 alter table public.questions enable row level security;
+drop policy if exists questions_admin_manage on public.questions;
+drop policy if exists questions_read_when_available on public.questions;
 
 create policy questions_admin_manage
 on public.questions
