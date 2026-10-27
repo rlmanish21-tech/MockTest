@@ -64,6 +64,8 @@ create table if not exists public.attempts (
  started_at timestamptz not null default now(),
  submitted_at timestamptz,
  status text not null default 'in_progress' check(status in ('in_progress','submitted','evaluated')),
+ disqualified boolean not null default false,
+ disqualification_reason text,
  score numeric(10,2),
  max_score numeric(10,2),
  unique(test_id,student_id)
