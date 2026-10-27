@@ -16,6 +16,37 @@ function renderQuestionTable(raw){
 let attempt=null,test=null,questions=[],answers=new Map(),markedForReview=new Set(),current=0,clockTimer=null,saveChain=Promise.resolve(),finished=false,analysisRankText="Rank is being calculated.";
 let analysisRows=[],analysisAttempts=[],activeAnalysisAttemptId=null;
 let questionSeconds=new Map(),questionStartedAt=0,questionTimer=null,lastQuestionAutosave=0,tabSwitchCount=0,visibilityWarningAt=0,disqualified=false;
+const EXAM_LOCK_TTL_MS=15000,EXAM_LOCK_HEARTBEAT_MS=4000;
+let examLockKey=null,examLockOwner=null,examLockTimer=null;
+function acquireExamLock(attemptId){
+ examLockKey="lu-exam-lock:"+String(attemptId);
+ try{
+  examLockOwner=sessionStorage.getItem("lu-exam-tab-owner");
+  if(!examLockOwner){examLockOwner=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+"-"+Math.random().toString(36).slice(2));sessionStorage.setItem("lu-exam-tab-owner",examLockOwner)}
+  const now=Date.now(),existing=JSON.parse(localStorage.getItem(examLockKey)||"null");
+  if(existing&&existing.expiresAt>now&&existing.owner!==examLockOwner)return false;
+  const write=()=>localStorage.setItem(examLockKey,JSON.stringify({owner:examLockOwner,expiresAt:Date.now()+EXAM_LOCK_TTL_MS}));
+  write();
+  const verify=JSON.parse(localStorage.getItem(examLockKey)||"null");
+  if(!verify||verify.owner!==examLockOwner)return false;
+  examLockTimer=setInterval(()=>{
+   let currentLock=null;
+   try{currentLock=JSON.parse(localStorage.getItem(examLockKey)||"null")}catch{}
+   if(!currentLock||currentLock.owner!==examLockOwner){
+    clearInterval(examLockTimer);examLockTimer=null;finished=true;clearInterval(clockTimer);clearInterval(questionTimer);
+    showMessage("This attempt is active in another exam window. To avoid losing answers, continue only in that window.",true);return;
+   }
+   write();
+  },EXAM_LOCK_HEARTBEAT_MS);
+  return true;
+ }catch(err){showMessage("This browser cannot verify the single-window exam lock. Please enable site storage and reload.",true);return false}
+}
+function releaseExamLock(){
+ if(examLockTimer){clearInterval(examLockTimer);examLockTimer=null}
+ if(!examLockKey||!examLockOwner)return;
+ try{const currentLock=JSON.parse(localStorage.getItem(examLockKey)||"null");if(currentLock&&currentLock.owner===examLockOwner)localStorage.removeItem(examLockKey)}catch{}
+}
+window.addEventListener("pagehide",releaseExamLock);
 function showMessage(text,error=false){const e=$("exam-message");e.textContent=text;e.className="exam-status"+(error?" error":"");e.classList.remove("exam-hidden")}
 function saveStatus(text){$("save-status").textContent=text}
 function formatRemaining(ms){const sec=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return h?String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0"):String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")}
