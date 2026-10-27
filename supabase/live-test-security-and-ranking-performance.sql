@@ -43,8 +43,7 @@ using (
       and t.status = 'published'
       and (
         t.test_type is distinct from 'live'
-        or t.starts_at is null
-        or now() >= t.starts_at
+        or (t.starts_at is not null and now() >= t.starts_at)
         or exists (
           select 1
           from public.attempts a
