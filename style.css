@@ -1011,3 +1011,15 @@ footer{text-align:center;padding:26px;color:var(--muted);font-size:12.5px}
 @media(max-width:640px){.exam-top-meta{flex-wrap:wrap;justify-content:flex-end;gap:7px}.question-time-taken{font-size:12px}}
 
 #tab-switch-warning{margin:10px 0;padding:12px 14px;border:1px solid #f59e0b;background:#fffbeb;color:#92400e;border-radius:10px;font-weight:700}
+
+/* Student question bookmarks */
+.bookmark-question.is-bookmarked{background:#fff3cf!important;border-color:#d4a23b!important;color:#704b00!important;font-weight:800}
+.bookmarks-wrap{max-width:1100px;margin:40px auto;padding:0 20px}
+.bookmark-list{display:grid;gap:18px;margin-top:18px}
+.bookmark-card{padding:24px}
+.bookmark-card h2{font-size:19px;line-height:1.55;margin:18px 0}
+.bookmark-card-head,.bookmark-card-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.bookmark-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0}
+.bookmark-option{display:flex;gap:9px;padding:12px;border:1px solid var(--line,#e8e4d9);border-radius:10px;background:var(--surface-2,#faf9f5)}
+.bookmark-card-actions{justify-content:flex-start;margin-top:18px}
+@media(max-width:600px){.bookmark-options{grid-template-columns:1fr}.bookmark-card{padding:16px}}
