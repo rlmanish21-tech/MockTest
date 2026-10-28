@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1430"><title>Student Dashboard | LU Update</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css?v=dashboard-cards-20261026-1"><link rel="stylesheet" href="theme.css?v=responsive-refresh-20261028-1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1430"><title>Student Dashboard | LU Update</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css?v=dashboard-command-centre-20261028-1"><link rel="stylesheet" href="theme.css?v=responsive-refresh-20261028-1">
 <script src="config.js?v=automatic-results-1"></script><script type="module" src="app.js?v=single-exam-window-20261027-1"></script>
 </head>
 <body class="student-app">
@@ -19,12 +19,46 @@
 <main class="student-main">
 <div id="message" class="status"></div>
 <section class="student-view active" id="view-overview" data-view-panel="overview">
-<section id="student-overview" class="student-hero"><div class="student-hero-copy"><div class="student-hero-badges"><span id="hero-stream-badge">🎓 Student</span><span id="hero-course-badge">📚 Course</span></div><p class="eyebrow">YOUR LEARNING SPACE</p><h1 id="welcome">Good day, Student 👋</h1><p>Pick up where you left off. Open a test, review your results, or practise at your own pace.</p></div><div class="student-course-pill"><small id="hero-live-label" class="live-status-label"><span class="live-status-dot" aria-hidden="true"></span><span id="hero-live-text">YOUR NEXT STEP</span></small><strong id="hero-course">Loading course…</strong><a href="#tests" id="hero-cta" data-open-view="tests">View available tests →</a></div></section>
-<section class="student-stat-grid dashboard-stats"><article class="student-stat"><div class="student-stat-icon purple"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6Z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></div><span>Mock tests available</span><strong id="stat-tests">—</strong><small>Published tests for you</small></article><article class="student-stat"><div class="student-stat-icon green"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg></div><span>Results published</span><strong id="stat-results">—</strong><small>Scores released to you</small></article><article class="student-stat"><div class="student-stat-icon blue"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".6"/></svg></div><span>Average score</span><strong id="stat-average">—</strong><small>Across published results</small></article><article class="student-stat"><div class="student-stat-icon orange"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg></div><span>Live now</span><strong id="stat-live">—</strong><small>Tests currently open</small></article></section>
-<div class="student-grid dashboard-overview-grid"><section class="student-panel"><div class="student-panel-head"><div><h2>Mock tests for you</h2><p>Available tests based on your course and current schedule.</p></div><a href="#tests" data-open-view="tests" class="student-panel-link">View all</a></div><div id="overview-tests"><div class="student-results-empty">Loading available tests…</div></div></section>
-<section class="student-panel"><div class="student-panel-head"><div><h2>Recent results</h2><p>Your latest published scores.</p></div><a href="#results" data-open-view="results" class="student-panel-link">All results</a></div><div id="overview-results"><div class="student-results-empty">Loading your results…</div></div><div id="results-chart" class="results-mini-chart" aria-label="Recent result percentages"></div></section></div>
-<section class="student-panel practice-overview-panel"><div class="student-panel-head"><div><h2>Practice corner</h2><p>Continue with published practice tests and completed live tests.</p></div><a href="#practice" data-open-view="practice" class="student-panel-link">Open corner</a></div><div id="overview-practice" class="practice-overview-grid"><div class="student-results-empty">Loading practice tests…</div></div></section>
-<div class="student-tip"><strong>Tip:</strong> Attempt a mock test in one sitting, then review every wrong answer in Practice. Use your published results to track your progress.</div>
+  <section id="student-overview" class="dash-welcome">
+    <div class="dash-welcome-main">
+      <div class="dash-kicker"><span class="dash-kicker-dot"></span> YOUR LU UPDATE SPACE</div>
+      <h1 id="welcome">Ready to make progress?</h1>
+      <p>Your next mock, your progress, and your saved questions — all in one place.</p>
+      <div class="dash-course-tags"><span id="hero-stream-badge">🎓 Student</span><span id="hero-course-badge">📚 Course</span></div>
+      <div class="dash-welcome-actions"><a href="#tests" data-open-view="tests" class="dash-primary-action">Explore live tests <span>↗</span></a><a href="#practice" data-open-view="practice" class="dash-text-action">Practice at your pace →</a></div>
+    </div>
+    <div class="dash-focus-card">
+      <div class="dash-focus-top"><span class="dash-focus-symbol">✦</span><span id="hero-live-label" class="dash-focus-label"><span class="live-status-dot" aria-hidden="true"></span><span id="hero-live-text">YOUR NEXT STEP</span></span></div>
+      <span class="dash-focus-caption">PICK UP FROM HERE</span>
+      <strong id="hero-course">Loading your next test…</strong>
+      <p>One focused attempt is better than waiting for the perfect time.</p>
+      <a href="#tests" id="hero-cta" data-open-view="tests">Find your next test →</a>
+      <div class="dash-focus-decoration" aria-hidden="true">LU</div>
+    </div>
+  </section>
+
+  <section class="dash-section-heading"><div><span class="dash-section-eyebrow">YOUR SNAPSHOT</span><h2>Your preparation at a glance</h2></div><span class="dash-live-note"><i></i> Updates from your account</span></section>
+  <section class="student-stat-grid dashboard-stats dash-stats">
+    <article class="student-stat dash-stat-card"><div class="dash-stat-top"><span class="dash-stat-icon dash-violet">▤</span><span class="dash-stat-tag">LIBRARY</span></div><span>Available mock tests</span><strong id="stat-tests">—</strong><small>Published for your course</small></article>
+    <article class="student-stat dash-stat-card"><div class="dash-stat-top"><span class="dash-stat-icon dash-mint">✓</span><span class="dash-stat-tag">COMPLETED</span></div><span>Results published</span><strong id="stat-results">—</strong><small>Scores ready to review</small></article>
+    <article class="student-stat dash-stat-card"><div class="dash-stat-top"><span class="dash-stat-icon dash-blue">◉</span><span class="dash-stat-tag">PERFORMANCE</span></div><span>Average score</span><strong id="stat-average">—</strong><small>Across released results</small></article>
+    <article class="student-stat dash-stat-card dash-stat-live"><div class="dash-stat-top"><span class="dash-stat-icon dash-amber">●</span><span class="dash-stat-tag">HAPPENING NOW</span></div><span>Live tests open</span><strong id="stat-live">—</strong><small>Available to attempt now</small></article>
+  </section>
+
+  <section class="dash-quick-actions" aria-label="Quick actions">
+    <a href="#tests" data-open-view="tests" class="dash-quick-link"><span class="dash-quick-icon">↗</span><span><strong>Take a live test</strong><small>Join a scheduled mock</small></span><b>→</b></a>
+    <a href="#practice" data-open-view="practice" class="dash-quick-link"><span class="dash-quick-icon dash-quick-green">✎</span><span><strong>Practice now</strong><small>Study at your own pace</small></span><b>→</b></a>
+    <a href="bookmarks.html" class="dash-quick-link"><span class="dash-quick-icon dash-quick-orange">▮</span><span><strong>Saved questions</strong><small>Revisit tricky concepts</small></span><b>→</b></a>
+    <a href="#results" data-open-view="results" class="dash-quick-link"><span class="dash-quick-icon dash-quick-blue">↗</span><span><strong>Check performance</strong><small>Review released scores</small></span><b>→</b></a>
+  </section>
+
+  <div class="student-grid dashboard-overview-grid dash-content-grid">
+    <section class="student-panel dash-panel"><div class="student-panel-head"><div><span class="dash-section-eyebrow">READY WHEN YOU ARE</span><h2>Tests picked for you</h2><p>Published tests you can open from your account.</p></div><a href="#tests" data-open-view="tests" class="student-panel-link">All tests <span>→</span></a></div><div id="overview-tests"><div class="student-results-empty">Loading available tests…</div></div></section>
+    <section class="student-panel dash-panel dash-results-panel"><div class="student-panel-head"><div><span class="dash-section-eyebrow">SEE HOW YOU’RE DOING</span><h2>Recent results</h2><p>Your latest released scores, at a glance.</p></div><a href="#results" data-open-view="results" class="student-panel-link">All results <span>→</span></a></div><div id="overview-results"><div class="student-results-empty">Loading your results…</div></div><div id="results-chart" class="results-mini-chart" aria-label="Recent result percentages"></div></section>
+  </div>
+
+  <section class="student-panel practice-overview-panel dash-panel dash-practice-panel"><div class="student-panel-head"><div><span class="dash-section-eyebrow">BUILD THE HABIT</span><h2>Your practice corner</h2><p>Return to practice tests and completed live tests whenever you’re ready.</p></div><a href="#practice" data-open-view="practice" class="student-panel-link">Open practice <span>→</span></a></div><div id="overview-practice" class="practice-overview-grid"><div class="student-results-empty">Loading practice tests…</div></div></section>
+  <section class="dash-study-nudge"><span class="dash-nudge-icon">✦</span><div><strong>A simple study loop that works</strong><p>Attempt a mock → review mistakes → bookmark tricky questions → try again. Small, consistent sessions help you spot what to improve.</p></div><a href="bookmarks.html">Review bookmarks →</a></section>
 </section>
 <section class="student-view" id="view-tests" data-view-panel="tests">
 <section id="tests-section" class="student-panel"><div class="student-panel-head"><div><div class="student-label">TEST CENTRE</div><h2>Live tests</h2><p>Upcoming and recently completed live tests appear here. Tests move to Practice two hours after their scheduled end.</p></div><span class="student-chip">LIVE TESTS</span></div><div class="student-filter-row"><input id="test-search" type="search" placeholder="Search live tests…" aria-label="Search live tests"><select id="test-subject-filter" aria-label="Filter live tests by subject"><option value="all">All subjects</option></select></div><div id="tests"><div class="item">Loading tests…</div></div><div id="test-filter-empty" class="student-results-empty" hidden>No tests match your search. Try another title or filter.</div></section>
