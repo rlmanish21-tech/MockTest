@@ -14,8 +14,11 @@ create policy "Students read own bookmarks" on public.student_bookmarks
 drop policy if exists "Students add own bookmarks" on public.student_bookmarks;
 create policy "Students add own bookmarks" on public.student_bookmarks
   for insert to authenticated with check (student_id = auth.uid());
+drop policy if exists "Students update own bookmarks" on public.student_bookmarks;
+create policy "Students update own bookmarks" on public.student_bookmarks
+  for update to authenticated using (student_id = auth.uid()) with check (student_id = auth.uid());
 drop policy if exists "Students remove own bookmarks" on public.student_bookmarks;
 create policy "Students remove own bookmarks" on public.student_bookmarks
   for delete to authenticated using (student_id = auth.uid());
-grant select, insert, delete on public.student_bookmarks to authenticated;
+grant select, insert, update, delete on public.student_bookmarks to authenticated;
 grant usage, select on sequence public.student_bookmarks_id_seq to authenticated;
