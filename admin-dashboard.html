@@ -75,9 +75,19 @@
   </main>
 </div>
 <script>
+if(window.matchMedia('(max-width:760px)').matches){
+ document.body.classList.add('owner-sidebar-collapsed');
+ const toggle=document.getElementById('owner-sidebar-toggle');
+ if(toggle){toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','Expand sidebar');}
+}
 document.addEventListener('click',function(e){
  const nav=e.target.closest('[data-admin-page]');
  if(!nav)return;
+ if(window.matchMedia('(max-width:760px)').matches){
+  document.body.classList.add('owner-sidebar-collapsed');
+  const toggle=document.getElementById('owner-sidebar-toggle');
+  if(toggle){toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','Expand sidebar');}
+ }
  const target=nav.getAttribute('data-admin-page');
  document.querySelectorAll('.admin-view').forEach(page=>{page.hidden=page.id!==target});
  document.querySelectorAll('.owner-nav').forEach(item=>item.classList.toggle('active',item===nav));
