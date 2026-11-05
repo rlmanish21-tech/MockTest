@@ -1,0 +1,63 @@
+/* LU Update Design System — Blue brand edition
+   Central visual layer. Keep component IDs, classes and application logic unchanged. */
+:root{
+  --primary-50:#EFF6FF;--primary-100:#DBEAFE;--primary-200:#BFDBFE;--primary-300:#93C5FD;--primary-400:#60A5FA;--primary-500:#2563EB;--primary-600:#1D4ED8;--primary-700:#1E40AF;--primary-800:#1E3A8A;--primary-900:#172554;
+  --neutral-50:#F9FAFB;--neutral-100:#F3F4F6;--neutral-200:#E5E7EB;--neutral-300:#D1D5DB;--neutral-400:#9CA3AF;--neutral-500:#6B7280;--neutral-600:#4B5563;--neutral-700:#374151;--neutral-800:#1F2937;--neutral-900:#111827;
+  --success-50:#F0FDF4;--success-100:#DCFCE7;--success-500:#16A34A;--success-600:#15803D;
+  --warning-50:#FFFBEB;--warning-100:#FEF3C7;--warning-500:#D97706;--warning-600:#B45309;
+  --error-50:#FEF2F2;--error-100:#FEE2E2;--error-500:#DC2626;--error-600:#B91C1C;
+  --brand:var(--primary-500);--brand-600:var(--primary-600);--brand-700:var(--primary-700);--brand-100:var(--primary-100);--brand-50:var(--primary-50);
+  --canvas:var(--neutral-50);--canvas-2:var(--neutral-100);--paper:var(--neutral-50);--paper-2:var(--neutral-100);
+  --surface:#FFFFFF;--surface-2:var(--neutral-50);--line:var(--neutral-200);--line-2:var(--neutral-300);
+  --text:var(--neutral-900);--text-2:var(--neutral-700);--muted:var(--neutral-500);
+  --ink-950:var(--neutral-900);--ink-900:var(--neutral-900);--ink-800:var(--neutral-800);--ink-700:var(--neutral-700);--ink-600:var(--neutral-600);
+  --ok:var(--success-500);--ok-50:var(--success-50);--ok-line:var(--success-100);
+  --warn:var(--warning-600);--warn-50:var(--warning-50);--warn-line:var(--warning-100);
+  --bad:var(--error-600);--bad-50:var(--error-50);--bad-line:var(--error-100);
+  --gold:var(--primary-600);--gold-400:var(--primary-400);--gold-300:var(--primary-300);--gold-100:var(--primary-100);--gold-50:var(--primary-50);
+  --marker:var(--primary-500);--marker-soft:var(--primary-100);
+  --shadow-1:0 1px 2px rgb(17 24 39/.05),0 2px 8px rgb(17 24 39/.04);
+  --shadow-2:0 12px 32px -18px rgb(17 24 39/.22);
+  color-scheme:light;
+}
+html{background:var(--neutral-50)}
+body{background:var(--neutral-50)!important;background-image:none!important;color:var(--neutral-900)}
+h1,h2,h3,h4{color:var(--neutral-900)}
+a{color:var(--primary-600)}
+::selection{background:var(--primary-100);color:var(--primary-900)}
+:focus-visible{outline:3px solid rgb(37 99 235/.35)!important;outline-offset:2px}
+.btn,.btn.primary,.primary,.btn-gold{
+  border-radius:12px!important;background:var(--primary-500)!important;background-image:none!important;
+  color:#fff!important;border:1px solid var(--primary-500)!important;
+  box-shadow:0 1px 2px rgb(37 99 235/.16),0 5px 12px -7px rgb(37 99 235/.65)!important;
+  transition:background .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease!important;
+}
+.btn.primary:hover,.primary:hover,.btn-gold:hover{background:var(--primary-600)!important;border-color:var(--primary-600)!important;transform:translateY(-1px);box-shadow:0 5px 14px -6px rgb(37 99 235/.55)!important}
+.btn.primary:active,.primary:active{background:var(--primary-700)!important;transform:translateY(0)}
+.btn.secondary,.secondary{background:#fff!important;color:var(--neutral-700)!important;border:1px solid var(--neutral-300)!important;box-shadow:none!important}
+.btn.secondary:hover,.secondary:hover{background:var(--neutral-50)!important;border-color:var(--primary-300)!important;color:var(--primary-700)!important}
+.btn.success,.success{background:var(--success-500)!important;border-color:var(--success-500)!important;color:#fff!important}
+button:not(.btn):not(.owner-nav):not(.student-nav):not(.sidebar-toggle){accent-color:var(--primary-500)}
+input:focus,select:focus,textarea:focus{border-color:var(--primary-500)!important;box-shadow:0 0 0 3px rgb(37 99 235/.12)!important;outline:0}
+input[type=checkbox],input[type=radio]{accent-color:var(--primary-500)}
+.badge,.chip,.student-chip{border-color:var(--primary-100)}
+.owner-topbar,.student-topbar,.lp2-header{background:rgba(255,255,255,.94)!important;border-color:var(--neutral-200)!important;backdrop-filter:blur(14px)}
+.owner-brand-mark,.brand-bubble{background:var(--primary-500)!important;color:#fff!important;box-shadow:none!important}
+.owner-nav.active,.student-nav.active,[aria-current=page]{background:var(--primary-50)!important;color:var(--primary-700)!important;border-color:var(--primary-100)!important}
+.owner-nav:hover,.student-nav:hover{background:var(--neutral-100)!important;color:var(--primary-700)!important}
+.owner-sidebar,.student-sidebar{background:#fff!important;border-color:var(--neutral-200)!important}
+.owner-side-label,.student-side-label{color:var(--neutral-500)!important}
+.card,.panel,.exam-card,.owner-card,.student-card,.auth-card,.lp2-card{border-color:var(--neutral-200)!important;box-shadow:var(--shadow-1)}
+.lp2-hero,.lp2-cta{background:linear-gradient(135deg,#EFF6FF 0%,#FFFFFF 65%)!important}
+.lp2-pill,.student-label,.eyebrow{color:var(--primary-700)}
+.lp2-blob{opacity:.18}
+.lp2-blob.b1{background:var(--primary-200)!important}
+.lp2-blob.b2{background:var(--primary-100)!important}
+.owner-secure i,.lp2-pill i{background:var(--success-500)!important}
+.exam-option:has(input:checked),.option:has(input:checked){background:var(--primary-50)!important;border-color:var(--primary-300)!important}
+.progress-bar,.progress-fill,.meter-fill{background:var(--primary-500)!important}
+.correct,.is-correct,.status.ok{--state-color:var(--success-500)}
+.incorrect,.is-incorrect,.status.error{--state-color:var(--error-500)}
+mark,.highlight{background:var(--primary-100);color:var(--primary-900)}
+hr,.divider{border-color:var(--neutral-200)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
