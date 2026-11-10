@@ -1,0 +1,69 @@
+/* LU Update student experience — clean, low-clutter interface */
+:root{--lu-blue:#2563EB;--lu-blue-dark:#1D4ED8;--lu-ink:#111827;--lu-muted:#64748b;--lu-line:#e5e7eb;--lu-bg:#f8fafc;--lu-card:#fff}
+body.student-app,body.exam-app{background:var(--lu-bg)!important;background-image:none!important;color:var(--lu-ink)!important;font-family:"Plus Jakarta Sans",system-ui,sans-serif!important}
+.student-top,.exam-top{background:#fff!important;border-bottom:1px solid var(--lu-line)!important;box-shadow:0 1px 3px rgba(15,23,42,.04)!important;backdrop-filter:none!important}
+.student-top{min-height:68px!important;padding:0 28px!important}
+.student-brand,.exam-brand{color:var(--lu-ink)!important;font-family:inherit!important;font-weight:800!important;letter-spacing:-.03em!important}
+.student-brand b,.exam-brand b{color:var(--lu-blue)!important}
+.student-brand-mark{background:var(--lu-blue)!important;border-radius:11px!important;box-shadow:none!important}
+.student-online{background:#eff6ff!important;color:#1d4ed8!important;border:1px solid #dbeafe!important;border-radius:999px!important;padding:7px 12px!important;font-size:12px!important;font-weight:700!important}
+.student-layout{grid-template-columns:238px minmax(0,1fr)!important;gap:0!important}
+.student-sidebar{background:#fff!important;border-right:1px solid var(--lu-line)!important;box-shadow:none!important;padding:24px 14px!important}
+.student-nav-title{color:#94a3b8!important;font-size:10px!important;letter-spacing:.12em!important;font-weight:800!important;padding:0 12px 12px!important}
+.student-nav{border-radius:10px!important;color:#475569!important;font-size:13px!important;font-weight:650!important;min-height:43px!important;margin:3px 0!important;transition:background .16s,color .16s!important}
+.student-nav:hover{background:#f8fafc!important;color:var(--lu-blue)!important}
+.student-nav.active{background:#eff6ff!important;color:var(--lu-blue)!important;box-shadow:inset 3px 0 0 var(--lu-blue)!important}
+.student-side-help{background:#f8fafc!important;border:1px solid var(--lu-line)!important;border-radius:12px!important;box-shadow:none!important}
+.student-main{max-width:1440px!important;padding:28px 34px 40px!important}
+.student-view{max-width:1240px!important;margin:0 auto!important}
+.dash-welcome{background:#fff!important;color:var(--lu-ink)!important;border:1px solid var(--lu-line)!important;border-radius:18px!important;box-shadow:0 2px 8px rgba(15,23,42,.035)!important;overflow:hidden!important}
+.dash-welcome h1,.dash-welcome p,.dash-welcome .dash-kicker,.dash-welcome .dash-focus-caption,.dash-welcome .dash-focus-label{color:var(--lu-ink)!important}
+.dash-welcome-main{padding:32px!important}
+.dash-kicker,.dash-section-eyebrow,.dash-stat-tag,.practice-eyebrow{color:#64748b!important;letter-spacing:.09em!important;font-family:inherit!important;font-size:10px!important;font-weight:800!important}
+.dash-kicker-dot,.dash-live-note i{background:var(--lu-blue)!important;box-shadow:none!important}
+.dash-welcome h1{font-size:clamp(25px,3vw,34px)!important;letter-spacing:-.045em!important;font-weight:800!important}
+.dash-welcome p{color:#64748b!important}
+.dash-focus-card{background:#f8fafc!important;border:1px solid var(--lu-line)!important;border-radius:14px!important;box-shadow:none!important}
+.dash-focus-card strong,.dash-focus-card p,.dash-focus-card a{color:var(--lu-ink)!important}
+.dash-focus-decoration{color:#dbeafe!important}
+.dash-primary-action,.dash-quick-icon{background:var(--lu-blue)!important;color:#fff!important;border-radius:10px!important;box-shadow:none!important}
+.dash-text-action{color:var(--lu-blue)!important}
+.dash-section-heading{margin:28px 0 14px!important}
+.dash-section-heading h2,.student-panel-head h2{font-size:19px!important;font-weight:750!important;letter-spacing:-.025em!important}
+.student-stat-grid{gap:14px!important}
+.student-stat,.dash-stat-card,.student-panel,.practice-content-panel,.profile-side-card,.profile-info-panel{background:#fff!important;border:1px solid var(--lu-line)!important;border-radius:14px!important;box-shadow:0 1px 3px rgba(15,23,42,.035)!important}
+.dash-stat-card{padding:18px!important}
+.dash-stat-icon{border-radius:9px!important;box-shadow:none!important}
+.dash-stat-tag{font-size:9px!important}
+.dash-quick-actions{gap:12px!important;margin:18px 0 24px!important}
+.dash-quick-link{background:#fff!important;border:1px solid var(--lu-line)!important;border-radius:12px!important;box-shadow:none!important;padding:15px!important}
+.dash-quick-link:hover{border-color:#bfdbfe!important;background:#f8fbff!important;transform:translateY(-1px)!important}
+.dash-quick-link strong{color:var(--lu-ink)!important;font-size:13px!important}
+.dash-quick-link small{color:#64748b!important}
+.dash-content-grid{gap:16px!important}
+.student-panel,.dash-panel{padding:22px!important}
+.student-panel-head{margin-bottom:16px!important}
+.student-panel-head p{color:#64748b!important}
+.student-panel-link{color:var(--lu-blue)!important;background:none!important}
+.student-test-card,.test-card,.practice-test-card{border:1px solid var(--lu-line)!important;border-radius:12px!important;box-shadow:none!important;background:#fff!important}
+.student-chip{background:#eff6ff!important;color:#1d4ed8!important;border:1px solid #dbeafe!important;border-radius:999px!important}
+.student-filter-row input,.student-filter-row select,.practice-toolbar input,.practice-toolbar select,.student-profile-form-grid input,.student-profile-form-grid select{border:1px solid #d1d5db!important;border-radius:9px!important;background:#fff!important;box-shadow:none!important}
+.practice-hero{background:#fff!important;border:1px solid var(--lu-line)!important;border-radius:16px!important;box-shadow:none!important;color:var(--lu-ink)!important}
+.practice-hero h1,.practice-hero p{color:var(--lu-ink)!important}
+.practice-toolbar{background:#fff!important;border:1px solid var(--lu-line)!important;border-radius:12px!important}
+.practice-tab.active{background:#eff6ff!important;color:var(--lu-blue)!important;border-color:#bfdbfe!important}
+.student-footer{border-top:1px solid var(--lu-line)!important;color:#94a3b8!important}
+.exam-top{min-height:66px!important;padding:0 24px!important}
+.exam-wrap{max-width:1180px!important;margin:28px auto!important;padding:0 20px!important}
+.exam-card,.analysis-chart-card,.analysis-detail,.analysis-question-panel{background:#fff!important;border:1px solid var(--lu-line)!important;border-radius:14px!important;box-shadow:0 1px 4px rgba(15,23,42,.04)!important}
+.exam-title-row{margin-bottom:20px!important}
+.exam-title-row h1{font-size:26px!important;letter-spacing:-.04em!important}
+.exam-muted{color:#64748b!important}
+.exam-clock{background:#eff6ff!important;color:#1d4ed8!important;border:1px solid #dbeafe!important;border-radius:9px!important}
+.exam-options button,.exam-option{border:1px solid #e5e7eb!important;border-radius:10px!important;box-shadow:none!important}
+.exam-options button:hover,.exam-option:hover{border-color:#93c5fd!important;background:#f8fbff!important}
+.exam-number-grid button{border-radius:8px!important}
+.bookmarks-wrap{max-width:1080px!important}
+@media(max-width:900px){.student-layout{grid-template-columns:210px minmax(0,1fr)!important}.student-main{padding:22px 20px 32px!important}.dash-content-grid{grid-template-columns:1fr!important}}
+@media(max-width:760px){.student-top{padding:0 14px!important;min-height:62px!important}.student-layout{display:block!important}.student-sidebar{position:fixed!important;z-index:90!important;top:62px!important;bottom:0!important;left:0!important;width:260px!important;transform:translateX(0);transition:transform .2s ease!important}.student-sidebar-collapsed .student-sidebar{transform:translateX(-105%)!important}.student-main{padding:18px 14px 28px!important}.dash-welcome{grid-template-columns:1fr!important}.dash-welcome-main{padding:23px!important}.dash-focus-card{margin:0 16px 16px!important}.dash-quick-actions{grid-template-columns:1fr 1fr!important}.student-stat-grid{grid-template-columns:1fr 1fr!important}.student-panel{padding:17px!important}.exam-wrap{margin:16px auto!important;padding:0 12px!important}.exam-grid{grid-template-columns:1fr!important}.exam-top{padding:0 12px!important;flex-wrap:wrap!important}.exam-top-meta{gap:6px!important}.exam-top-meta .btn{min-height:36px!important;padding:0 10px!important;font-size:12px!important}}
+@media(max-width:420px){.dash-quick-actions,.student-stat-grid{grid-template-columns:1fr!important}.student-online{display:none!important}.dash-welcome h1{font-size:25px!important}}
